@@ -102,16 +102,16 @@ observaciones). El conjunto de consultas de una mascota es su **historia clínic
 - Extra: `GET /api/pets/:id/history` como atajo a la historia (opcional, mismo dato).
 
 ## Criterios de aceptación
-- [ ] Registrar una consulta asociada a una mascota funciona; endpoints con JWT.
-- [ ] Registrar una consulta desde un turno (`appointmentId`) marca ese turno como
+- [x] Registrar una consulta asociada a una mascota funciona; endpoints con JWT.
+- [x] Registrar una consulta desde un turno (`appointmentId`) marca ese turno como
       ATENDIDO (D2).
-- [ ] Registrar una consulta con `weight` actualiza el peso actual de la mascota (D3).
-- [ ] Se puede registrar una consulta SIN turno (urgencia) — `appointmentId` null (D1).
-- [ ] `GET /api/consultations?petId=X` devuelve la historia clínica ordenada
+- [x] Registrar una consulta con `weight` actualiza el peso actual de la mascota (D3).
+- [x] Se puede registrar una consulta SIN turno (urgencia) — `appointmentId` null (D1).
+- [x] `GET /api/consultations?petId=X` devuelve la historia clínica ordenada
       cronológicamente.
-- [ ] Registrar consulta para una mascota inexistente/inactiva devuelve error claro.
-- [ ] Editar una consulta actualiza `last_update_date`.
-- [ ] Todo el flujo (marcar turno + actualizar peso + crear consulta) es
+- [x] Registrar consulta para una mascota inexistente/inactiva devuelve error claro.
+- [x] Editar una consulta actualiza `last_update_date`.
+- [x] Todo el flujo (marcar turno + actualizar peso + crear consulta) es
       transaccional: si algo falla, no queda a medias.
 
 ## Riesgos / notas
@@ -125,13 +125,14 @@ observaciones). El conjunto de consultas de una mascota es su **historia clínic
   registro médico; la integridad histórica importa.
 
 ## Tareas
-- [ ] **DB:** migración `consultations` + índices + FKs (pet, appointment, vet).
-- [ ] **Back:** entidad `Consultation` + relaciones.
-- [ ] **Back:** DTOs (create, update, list-query).
-- [ ] **Back:** `ConsultationsService.create` transaccional (marca turno ATENDIDO
+- [x] **DB:** migración `consultations` + índices + FKs (pet, appointment, vet).
+- [x] **Back:** entidad `Consultation` + relaciones.
+- [x] **Back:** DTOs (create, update, list-query).
+- [x] **Back:** `ConsultationsService.create` transaccional (marca turno ATENDIDO
       + actualiza peso mascota + crea consulta).
-- [ ] **Back:** `findByPet` (historia ordenada), `findOne`, `update`.
-- [ ] **Back:** `ConsultationsController` con guards (+ atajo /pets/:id/history opcional).
-- [ ] **Back:** registrar módulo en `app.module`.
-- [ ] **Prueba:** consulta desde turno (marca atendido), consulta sin turno,
+- [x] **Back:** `findByPet` (historia ordenada), `findOne`, `update`.
+- [x] **Back:** `ConsultationsController` con guards (atajo /pets/:id/history no
+      implementado — quedaba fuera de los criterios de aceptación).
+- [x] **Back:** registrar módulo en `app.module`.
+- [x] **Prueba:** consulta desde turno (marca atendido), consulta sin turno,
       actualización de peso, historia clínica ordenada, transaccionalidad.
