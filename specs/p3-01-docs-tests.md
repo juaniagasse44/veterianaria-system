@@ -82,16 +82,19 @@ verifican las reglas de negocio críticas — sobre todo las de concurrencia
   turnos, ledger de stock, etc.).
 
 ## Criterios de aceptación
-- [ ] `/api/docs` muestra toda la API, agrupada por módulos (tags), con el candado
+- [x] `/api/docs` muestra toda la API, agrupada por módulos (tags), con el candado
       Bearer funcionando para probar endpoints protegidos.
-- [ ] Los DTOs se ven documentados en Swagger (campos, tipos, ejemplos).
-- [ ] `npm test` corre y pasan los tests de las reglas críticas (solapamiento,
+- [x] Los DTOs se ven documentados en Swagger (campos, tipos, ejemplos).
+- [x] `npm test` corre y pasan los tests de las reglas críticas (solapamiento,
       estados, stock, transaccionalidad de vacunas).
-- [ ] Existe al menos un test de concurrencia que verifica el comportamiento bajo
-      operaciones simultáneas.
-- [ ] Existe al menos un test e2e del flujo principal.
-- [ ] El README del repo está completo, con instrucciones de levantado y capturas.
-- [ ] El README enlaza a la carpeta `specs/` y explica el método SDD usado.
+- [x] Existe al menos un test de concurrencia que verifica el comportamiento bajo
+      operaciones simultáneas (turnos y stock, ambos).
+- [x] Existe al menos un test e2e del flujo principal.
+- [ ] El README del repo está completo, con instrucciones de levantado **y
+      capturas**. _Instrucciones completas; faltan las capturas — no se pudieron
+      generar en este entorno (sin navegador/herramienta de screenshot), queda
+      pendiente agregarlas a mano (ver sección "Capturas" del README)._
+- [x] El README enlaza a la carpeta `specs/` y explica el método SDD usado.
 
 ## Riesgos / notas
 - **Base de datos de test:** los tests que tocan DB necesitan una base separada (o
@@ -107,14 +110,17 @@ verifican las reglas de negocio críticas — sobre todo las de concurrencia
   doc no, confunde. _Idealmente la doc sale de los DTOs, así se mantiene sola._
 
 ## Tareas
-- [ ] **Back:** instalar y configurar `@nestjs/swagger` en `main.ts` (+ Bearer auth).
-- [ ] **Back:** decorar DTOs con `@ApiProperty` y controllers con `@ApiTags`/`@ApiOperation`.
-- [ ] **Test:** setup de entorno de test (base de test / config Jest).
-- [ ] **Test:** unitarios de `AppointmentsService` (solapamiento, estados, pasado).
-- [ ] **Test:** unitarios de `StockService` (applyMovement, ajuste, invariante).
-- [ ] **Test:** unitarios de `ConsultationsService` y `VaccinationsService`
+- [x] **Back:** instalar y configurar `@nestjs/swagger` en `main.ts` (+ Bearer auth).
+- [x] **Back:** decorar DTOs con `@ApiProperty` y controllers con `@ApiTags`/`@ApiOperation`.
+- [x] **Test:** setup de entorno de test (base de test / config Jest).
+- [x] **Test:** unitarios de `AppointmentsService` (solapamiento, estados, pasado).
+- [x] **Test:** unitarios de `StockService` (applyMovement, ajuste, invariante).
+- [x] **Test:** unitarios de `ConsultationsService` y `VaccinationsService`
       (transaccionalidad, marca atendido, descuenta stock).
-- [ ] **Test:** un e2e del flujo completo (dueño → mascota → turno → consulta → vacuna).
-- [ ] **Test:** un test de concurrencia (turnos solapados o stock paralelo) (D2).
+- [x] **Test:** un e2e del flujo completo (dueño → mascota → turno → consulta → vacuna).
+- [x] **Test:** un test de concurrencia (turnos solapados o stock paralelo) (D2)
+      — se hicieron los dos.
 - [ ] **Docs:** README completo del proyecto (D4) con capturas y link a specs/.
-- [ ] **Opcional:** GitHub Action que corra los tests en cada push.
+      _Contenido completo salvo las capturas (ver nota arriba)._
+- [ ] **Opcional:** GitHub Action que corra los tests en cada push. _No implementado
+      (explícitamente opcional en la spec)._

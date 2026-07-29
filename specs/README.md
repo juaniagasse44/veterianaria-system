@@ -34,7 +34,8 @@ Owner: Juan (proyecto individual).
 ## 3. Estado actual
 
 ### En curso / próximo
-- Siguiente: **P3-01 (Documentación Swagger + tests)**.
+- Todas las specs de Fase 1, 2 y 3 están hechas. Queda pendiente solo agregar
+  capturas reales al README del repo (ver [p3-01-docs-tests.md](p3-01-docs-tests.md)).
 
 ### Hecho
 - **F-01 (Fundación)**: NestJS + TypeORM + PostgreSQL + Docker operativos.
@@ -70,6 +71,12 @@ Owner: Juan (proyecto individual).
   están asociadas a un producto del inventario, descuenta 1 unidad de stock en
   la misma transacción vía `StockService.applyMovement` (`reference_type=
   'VACCINE'`). Carnet por mascota y listado de próximas a vencer.
+- **P3-01 (Docs + tests)**: Swagger en `/api/docs` (Bearer auth, DTOs
+  documentados, 31 endpoints agrupados por tag); 43 tests unitarios de la
+  lógica de negocio crítica (repos mockeados, sin DB); suite e2e contra una
+  Postgres de test separada (`vetsystem_test`) con un flujo completo y dos
+  tests de concurrencia real (turnos y stock en paralelo). README del repo
+  ampliado con stack, características, método SDD y decisiones de diseño.
 
 ---
 
@@ -86,7 +93,7 @@ Owner: Juan (proyecto individual).
 | P2-01 | Turnos (con reglas de solapamiento) | Fase 2 | ✅ Hecho | P1-02, P1-03 |
 | P2-02 | Historia clínica / consultas | Fase 2 | ✅ Hecho | P2-01 |
 | P2-03 | Vacunas (descuenta stock) | Fase 2 | ✅ Hecho | P1-02, P1-04 |
-| P3-01 | Documentación Swagger + tests | Fase 3 | ☐ Pendiente | todo |
+| P3-01 | Documentación Swagger + tests | Fase 3 | ✅ Hecho | todo |
 
 **Estados:** ☐ Pendiente · 🟡 En progreso · ✅ Hecho
 
