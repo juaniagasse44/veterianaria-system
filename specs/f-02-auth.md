@@ -102,18 +102,18 @@ contraseñas, guard de JWT y guard de roles.
 - Agregar a `.env.example` y a la validación de env (F-01).
 
 ## Criterios de aceptación
-- [ ] `POST /api/auth/register` crea un usuario con password hasheada (nunca en
+- [x] `POST /api/auth/register` crea un usuario con password hasheada (nunca en
       texto plano) y rol EMPLOYEE.
-- [ ] `POST /api/auth/login` con credenciales correctas devuelve un JWT válido y
+- [x] `POST /api/auth/login` con credenciales correctas devuelve un JWT válido y
       el usuario **sin** el campo password.
-- [ ] `POST /api/auth/login` con credenciales incorrectas devuelve 401.
-- [ ] `GET /api/auth/me` sin token devuelve 401; con token válido devuelve el
+- [x] `POST /api/auth/login` con credenciales incorrectas devuelve 401.
+- [x] `GET /api/auth/me` sin token devuelve 401; con token válido devuelve el
       usuario actual.
-- [ ] Un endpoint protegido con `@Roles('ADMIN')` devuelve 403 si lo llama un
+- [x] Un endpoint protegido con `@Roles('ADMIN')` devuelve 403 si lo llama un
       EMPLOYEE, y funciona si lo llama un ADMIN.
-- [ ] El campo `password` no aparece en NINGUNA respuesta de la API.
-- [ ] El seed crea un ADMIN inicial con credenciales de env.
-- [ ] Registrar dos veces el mismo email devuelve error claro (409 o 400), no 500.
+- [x] El campo `password` no aparece en NINGUNA respuesta de la API.
+- [x] El seed crea un ADMIN inicial con credenciales de env.
+- [x] Registrar dos veces el mismo email devuelve error claro (409 o 400), no 500.
 
 ## Riesgos / notas
 - **Fuga de password:** el error clásico es que `password` se cuele en alguna
@@ -129,17 +129,17 @@ contraseñas, guard de JWT y guard de roles.
   decoradores bien probados ahora ahorra dolores después.
 
 ## Tareas
-- [ ] **DB:** migración tabla `users` + índice único email.
-- [ ] **Back:** entidad `User` (enum rol, password select:false).
-- [ ] **Back:** `UsersModule` + `UsersService` (create, findByEmail, findById…).
-- [ ] **Back:** instalar dependencias (`@nestjs/jwt`, `@nestjs/passport`,
+- [x] **DB:** migración tabla `users` + índice único email.
+- [x] **Back:** entidad `User` (enum rol, password select:false).
+- [x] **Back:** `UsersModule` + `UsersService` (create, findByEmail, findById…).
+- [x] **Back:** instalar dependencias (`@nestjs/jwt`, `@nestjs/passport`,
       `passport-jwt`, `bcrypt`).
-- [ ] **Back:** `AuthModule` + `AuthService` (register, login, hash, firma JWT).
-- [ ] **Back:** `JwtStrategy` + `JwtAuthGuard`.
-- [ ] **Back:** `RolesGuard` + decorador `@Roles()` + `@CurrentUser()`.
-- [ ] **Back:** `AuthController` (register, login, me).
-- [ ] **Back:** seed de ADMIN inicial (credenciales de env).
-- [ ] **Config:** agregar `JWT_SECRET`, `JWT_EXPIRES_IN`, `ADMIN_EMAIL`,
+- [x] **Back:** `AuthModule` + `AuthService` (register, login, hash, firma JWT).
+- [x] **Back:** `JwtStrategy` + `JwtAuthGuard`.
+- [x] **Back:** `RolesGuard` + decorador `@Roles()` + `@CurrentUser()`.
+- [x] **Back:** `AuthController` (register, login, me).
+- [x] **Back:** seed de ADMIN inicial (credenciales de env, `npm run seed:admin`).
+- [x] **Config:** agregar `JWT_SECRET`, `JWT_EXPIRES_IN`, `ADMIN_EMAIL`,
       `ADMIN_PASSWORD` a `.env.example` y a la validación de env.
-- [ ] **Prueba:** registrar, loguear, acceder a `/me`, y probar un endpoint
-      protegido por rol (crear uno de prueba temporal si hace falta).
+- [x] **Prueba:** registrar, loguear, acceder a `/me`, y probar un endpoint
+      protegido por rol (creado temporalmente y removido tras verificar 403/200).

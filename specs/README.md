@@ -34,12 +34,16 @@ Owner: Juan (proyecto individual).
 ## 3. Estado actual
 
 ### En curso / próximo
-- Siguiente: **F-02 (Autenticación y roles)**.
+- Siguiente: **P1-01 (Dueños/clientes)**.
 
 ### Hecho
 - **F-01 (Fundación)**: NestJS + TypeORM + PostgreSQL + Docker operativos.
   `docker-compose up` levanta API + DB, migraciones corren solas, `GET /api/health`
   responde `{ status: "ok" }`, validación global y formato de error D4 en su lugar.
+- **F-02 (Autenticación y roles)**: entidad `User` (roles `ADMIN`/`EMPLOYEE`),
+  registro, login con JWT, `JwtAuthGuard`, `RolesGuard`, `@Roles()`,
+  `@CurrentUser()`, `GET /api/auth/me`, seed de ADMIN inicial (`npm run
+  seed:admin`). Password nunca se devuelve en ninguna respuesta.
 
 ---
 
@@ -48,7 +52,7 @@ Owner: Juan (proyecto individual).
 | ID | Spec | Fase | Estado | Depende de |
 |-------|------|------|--------|------------|
 | F-01 | Fundación (setup NestJS + Postgres + TypeORM + Docker) | Fundación | ✅ Hecho | — |
-| F-02 | Autenticación y roles (JWT) | Fundación | ☐ Pendiente | F-01 |
+| F-02 | Autenticación y roles (JWT) | Fundación | ✅ Hecho | F-01 |
 | P1-01 | Dueños (clientes) | Fase 1 | ☐ Pendiente | F-02 |
 | P1-02 | Mascotas | Fase 1 | ☐ Pendiente | P1-01 |
 | P1-03 | Veterinarios | Fase 1 | ☐ Pendiente | F-02 |
