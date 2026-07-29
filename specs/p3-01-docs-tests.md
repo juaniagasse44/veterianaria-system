@@ -90,10 +90,8 @@ verifican las reglas de negocio críticas — sobre todo las de concurrencia
 - [x] Existe al menos un test de concurrencia que verifica el comportamiento bajo
       operaciones simultáneas (turnos y stock, ambos).
 - [x] Existe al menos un test e2e del flujo principal.
-- [ ] El README del repo está completo, con instrucciones de levantado **y
-      capturas**. _Instrucciones completas; faltan las capturas — no se pudieron
-      generar en este entorno (sin navegador/herramienta de screenshot), queda
-      pendiente agregarlas a mano (ver sección "Capturas" del README)._
+- [x] El README del repo está completo, con instrucciones de levantado y
+      capturas (aportadas por el usuario en `docs/screenshots/`).
 - [x] El README enlaza a la carpeta `specs/` y explica el método SDD usado.
 
 ## Riesgos / notas
@@ -120,7 +118,6 @@ verifican las reglas de negocio críticas — sobre todo las de concurrencia
 - [x] **Test:** un e2e del flujo completo (dueño → mascota → turno → consulta → vacuna).
 - [x] **Test:** un test de concurrencia (turnos solapados o stock paralelo) (D2)
       — se hicieron los dos.
-- [ ] **Docs:** README completo del proyecto (D4) con capturas y link a specs/.
-      _Contenido completo salvo las capturas (ver nota arriba)._
+- [x] **Docs:** README completo del proyecto (D4) con capturas y link a specs/.
 - [ ] **Opcional:** GitHub Action que corra los tests en cada push. _No implementado
       (explícitamente opcional en la spec)._

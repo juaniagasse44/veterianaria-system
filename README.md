@@ -265,7 +265,12 @@ con el razonamiento, está en cada spec):
 
 ## Capturas
 
-_Pendiente: agregar capturas de `/api/docs` (Swagger) y de un endpoint
-funcionando (ej. la agenda de turnos o el detalle de un producto con
-margen) una vez desplegado o corriendo en local — no se generaron capturas
-automáticas en este entorno._
+**Swagger — vista general** (`/api/docs`), con los endpoints agrupados por tag
+y el candado Bearer para autenticarse:
+
+![Swagger — vista general](docs/screenshots/swagger-overview.png)
+
+**Detalle de un endpoint** (`POST /api/owners`) con el DTO documentado y su
+ejemplo:
+
+![Swagger — crear un dueño](docs/screenshots/swagger-create-owner.png)
