@@ -34,7 +34,7 @@ Owner: Juan (proyecto individual).
 ## 3. Estado actual
 
 ### En curso / próximo
-- Siguiente: **P1-01 (Dueños/clientes)**.
+- Siguiente: **P1-02 (Mascotas)**.
 
 ### Hecho
 - **F-01 (Fundación)**: NestJS + TypeORM + PostgreSQL + Docker operativos.
@@ -44,6 +44,9 @@ Owner: Juan (proyecto individual).
   registro, login con JWT, `JwtAuthGuard`, `RolesGuard`, `@Roles()`,
   `@CurrentUser()`, `GET /api/auth/me`, seed de ADMIN inicial (`npm run
   seed:admin`). Password nunca se devuelve en ninguna respuesta.
+- **P1-01 (Dueños/clientes)**: CRUD completo (`/api/owners`) protegido por JWT,
+  búsqueda por nombre/teléfono/documento (ILIKE), paginación, documento único
+  parcial (permite múltiples `null`), baja lógica (`active=false`, solo ADMIN).
 
 ---
 
@@ -53,7 +56,7 @@ Owner: Juan (proyecto individual).
 |-------|------|------|--------|------------|
 | F-01 | Fundación (setup NestJS + Postgres + TypeORM + Docker) | Fundación | ✅ Hecho | — |
 | F-02 | Autenticación y roles (JWT) | Fundación | ✅ Hecho | F-01 |
-| P1-01 | Dueños (clientes) | Fase 1 | ☐ Pendiente | F-02 |
+| P1-01 | Dueños (clientes) | Fase 1 | ✅ Hecho | F-02 |
 | P1-02 | Mascotas | Fase 1 | ☐ Pendiente | P1-01 |
 | P1-03 | Veterinarios | Fase 1 | ☐ Pendiente | F-02 |
 | P1-04 | Productos + Stock | Fase 1 | ☐ Pendiente | F-02 |
