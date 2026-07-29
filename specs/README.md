@@ -34,7 +34,7 @@ Owner: Juan (proyecto individual).
 ## 3. Estado actual
 
 ### En curso / próximo
-- Siguiente: **P2-03 (Vacunas)**.
+- Siguiente: **P3-01 (Documentación Swagger + tests)**.
 
 ### Hecho
 - **F-01 (Fundación)**: NestJS + TypeORM + PostgreSQL + Docker operativos.
@@ -66,6 +66,10 @@ Owner: Juan (proyecto individual).
   una mascota (turno opcional). Crear una consulta desde un turno lo marca
   ATENDIDO y, si trae `weight`, actualiza el peso actual de la mascota — todo en
   una sola transacción (D2/D3). Historia clínica por mascota ordenada por fecha.
+- **P2-03 (Vacunas)**: `/api/vaccinations`, registra vacunas aplicadas y, si
+  están asociadas a un producto del inventario, descuenta 1 unidad de stock en
+  la misma transacción vía `StockService.applyMovement` (`reference_type=
+  'VACCINE'`). Carnet por mascota y listado de próximas a vencer.
 
 ---
 
@@ -81,7 +85,7 @@ Owner: Juan (proyecto individual).
 | P1-04 | Productos + Stock | Fase 1 | ✅ Hecho | F-02 |
 | P2-01 | Turnos (con reglas de solapamiento) | Fase 2 | ✅ Hecho | P1-02, P1-03 |
 | P2-02 | Historia clínica / consultas | Fase 2 | ✅ Hecho | P2-01 |
-| P2-03 | Vacunas (descuenta stock) | Fase 2 | ☐ Pendiente | P1-02, P1-04 |
+| P2-03 | Vacunas (descuenta stock) | Fase 2 | ✅ Hecho | P1-02, P1-04 |
 | P3-01 | Documentación Swagger + tests | Fase 3 | ☐ Pendiente | todo |
 
 **Estados:** ☐ Pendiente · 🟡 En progreso · ✅ Hecho

@@ -106,16 +106,16 @@ la misma transacción (usando el `applyMovement` de P1-04).
 - Roles: ADMIN y EMPLOYEE (D5).
 
 ## Criterios de aceptación
-- [ ] Registrar una vacuna asociada a una mascota funciona; endpoints con JWT.
-- [ ] Registrar una vacuna **con** producto asociado descuenta 1 del stock de ese
+- [x] Registrar una vacuna asociada a una mascota funciona; endpoints con JWT.
+- [x] Registrar una vacuna **con** producto asociado descuenta 1 del stock de ese
       producto, y el movimiento queda con `reference_type='VACCINE'` (D2).
-- [ ] El registro de la vacuna y el descuento de stock son **una sola transacción**:
+- [x] El registro de la vacuna y el descuento de stock son **una sola transacción**:
       si algo falla, no queda ni la vacuna ni el movimiento (o ninguno).
-- [ ] Registrar una vacuna **sin** producto asociado funciona y NO toca stock (D1).
-- [ ] `GET /api/vaccinations?petId=X` devuelve el carnet ordenado.
-- [ ] `GET /api/vaccinations/upcoming?days=30` lista las que vencen en ≤30 días.
-- [ ] Si `validDays` se envía, `next_dose_date` se calcula bien (applied + días).
-- [ ] Si no hay stock y se permite negativo, la vacuna igual se registra con alerta (D4).
+- [x] Registrar una vacuna **sin** producto asociado funciona y NO toca stock (D1).
+- [x] `GET /api/vaccinations?petId=X` devuelve el carnet ordenado.
+- [x] `GET /api/vaccinations/upcoming?days=30` lista las que vencen en ≤30 días.
+- [x] Si `validDays` se envía, `next_dose_date` se calcula bien (applied + días).
+- [x] Si no hay stock y se permite negativo, la vacuna igual se registra con alerta (D4).
 
 ## Riesgos / notas
 - **Transacción entre módulos (el punto clave):** este es el ejemplo más claro de
@@ -130,13 +130,13 @@ la misma transacción (usando el `applyMovement` de P1-04).
   se quisiera descontar más (ej. dosis dobles), se parametriza.
 
 ## Tareas
-- [ ] **DB:** migración `vaccinations` + índices + FKs (pet, product, vet).
-- [ ] **Back:** entidad `Vaccination` + relaciones.
-- [ ] **Back:** DTOs (create con productId opcional, list-query).
-- [ ] **Back:** `VaccinationsService.create` transaccional con descuento de stock
+- [x] **DB:** migración `vaccinations` + índices + FKs (pet, product, vet).
+- [x] **Back:** entidad `Vaccination` + relaciones.
+- [x] **Back:** DTOs (create con productId opcional, list-query).
+- [x] **Back:** `VaccinationsService.create` transaccional con descuento de stock
       vía `applyMovement(manager)` (D2).
-- [ ] **Back:** `findByPet` (carnet), `findUpcoming(days)`, `findOne`.
-- [ ] **Back:** `VaccinationsController` con guards.
-- [ ] **Back:** registrar módulo en `app.module`.
-- [ ] **Prueba:** vacuna con producto (descuenta stock + movimiento con ref),
+- [x] **Back:** `findByPet` (carnet), `findUpcoming(days)`, `findOne`.
+- [x] **Back:** `VaccinationsController` con guards.
+- [x] **Back:** registrar módulo en `app.module`.
+- [x] **Prueba:** vacuna con producto (descuenta stock + movimiento con ref),
       vacuna sin producto (no toca stock), transaccionalidad, carnet, próximas a vencer.
