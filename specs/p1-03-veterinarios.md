@@ -87,14 +87,14 @@ registro de quién realizó cada consulta.
 - `DELETE /api/veterinarians/:id` — baja lógica. Roles: **ADMIN**.
 
 ## Criterios de aceptación
-- [ ] CRUD completo, todos los endpoints exigen JWT.
-- [ ] Crear con matrícula repetida devuelve error claro (409/400), no 500.
-- [ ] Crear **sin** matrícula funciona (D1).
-- [ ] Listar veterinarios funciona para EMPLOYEE (lo necesita para asignar turnos),
+- [x] CRUD completo, todos los endpoints exigen JWT.
+- [x] Crear con matrícula repetida devuelve error claro (409/400), no 500.
+- [x] Crear **sin** matrícula funciona (D1).
+- [x] Listar veterinarios funciona para EMPLOYEE (lo necesita para asignar turnos),
       pero crear/editar/borrar le da 403 (solo ADMIN, D3).
-- [ ] La búsqueda por nombre/especialidad funciona.
-- [ ] `DELETE` marca `active=false`, no borra.
-- [ ] Ver un veterinario inexistente devuelve 404.
+- [x] La búsqueda por nombre/especialidad funciona.
+- [x] `DELETE` marca `active=false`, no borra.
+- [x] Ver un veterinario inexistente devuelve 404.
 
 ## Riesgos / notas
 - **No acoplar con `users`:** es tentador reusar la tabla de usuarios, pero un
@@ -104,11 +104,11 @@ registro de quién realizó cada consulta.
   dueño (múltiples null deben convivir).
 
 ## Tareas
-- [ ] **DB:** migración tabla `veterinarians` + índices (único parcial matrícula, nombre).
-- [ ] **Back:** entidad `Veterinarian`.
-- [ ] **Back:** DTOs (create, update, list-query).
-- [ ] **Back:** `VeterinariansService` (CRUD + validación matrícula única).
-- [ ] **Back:** `VeterinariansController` con guards JWT + roles (D3).
-- [ ] **Back:** registrar `VeterinariansModule` en `app.module`.
-- [ ] **Prueba:** CRUD + matrícula duplicada + permisos (EMPLOYEE lista pero no
+- [x] **DB:** migración tabla `veterinarians` + índices (único parcial matrícula, nombre).
+- [x] **Back:** entidad `Veterinarian`.
+- [x] **Back:** DTOs (create, update, list-query).
+- [x] **Back:** `VeterinariansService` (CRUD + validación matrícula única).
+- [x] **Back:** `VeterinariansController` con guards JWT + roles (D3).
+- [x] **Back:** registrar `VeterinariansModule` en `app.module`.
+- [x] **Prueba:** CRUD + matrícula duplicada + permisos (EMPLOYEE lista pero no
       crea) + baja lógica.
