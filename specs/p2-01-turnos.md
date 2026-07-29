@@ -116,18 +116,18 @@ incluso si dos turnos se crean simultáneamente. Los turnos pasan por estados.
 - Roles: ADMIN y EMPLOYEE en todos (D6).
 
 ## Criterios de aceptación
-- [ ] Crear un turno válido funciona y queda en PENDIENTE; endpoints con JWT.
-- [ ] Crear un turno que **se solapa** con otro del mismo veterinario devuelve 409
+- [x] Crear un turno válido funciona y queda en PENDIENTE; endpoints con JWT.
+- [x] Crear un turno que **se solapa** con otro del mismo veterinario devuelve 409
       con mensaje claro, y NO se crea.
-- [ ] Un turno que se solapa pero con **otro** veterinario SÍ se permite.
-- [ ] Un turno solapado con uno **cancelado** SÍ se permite (los cancelados no cuentan, D3).
-- [ ] No se puede crear un turno en el pasado (D5).
-- [ ] `end_at` debe ser posterior a `start_at` (rechazo si no).
-- [ ] Cambiar estado respeta las transiciones válidas (no se puede atender un
+- [x] Un turno que se solapa pero con **otro** veterinario SÍ se permite.
+- [x] Un turno solapado con uno **cancelado** SÍ se permite (los cancelados no cuentan, D3).
+- [x] No se puede crear un turno en el pasado (D5).
+- [x] `end_at` debe ser posterior a `start_at` (rechazo si no).
+- [x] Cambiar estado respeta las transiciones válidas (no se puede atender un
       cancelado, etc.).
-- [ ] La agenda por día/veterinario devuelve los turnos ordenados por hora,
+- [x] La agenda por día/veterinario devuelve los turnos ordenados por hora,
       sin los cancelados (o marcándolos aparte).
-- [ ] **(Concurrencia)** dos requests simultáneos que intentan reservar el mismo
+- [x] **(Concurrencia)** dos requests simultáneos que intentan reservar el mismo
       horario con el mismo vet: solo uno lo logra, el otro recibe 409.
 
 ## Riesgos / notas
@@ -145,15 +145,15 @@ incluso si dos turnos se crean simultáneamente. Los turnos pasan por estados.
   habilita registrar la consulta clínica. Dejar el estado bien modelado ahora.
 
 ## Tareas
-- [ ] **DB:** migración `appointments` + índices (vet+start, pet, status) + CHECK end>start.
-- [ ] **Back:** entidad `Appointment` (enums reason/status).
-- [ ] **Back:** DTOs (create, reschedule, change-status, list-query).
-- [ ] **Back:** `AppointmentsService.create` con control de solapamiento + lock (D2/D3).
-- [ ] **Back:** `reschedule` (revalida solapamiento), `changeStatus` (transiciones D4),
+- [x] **DB:** migración `appointments` + índices (vet+start, pet, status) + CHECK end>start.
+- [x] **Back:** entidad `Appointment` (enums reason/status).
+- [x] **Back:** DTOs (create, reschedule, change-status, list-query).
+- [x] **Back:** `AppointmentsService.create` con control de solapamiento + lock (D2/D3).
+- [x] **Back:** `reschedule` (revalida solapamiento), `changeStatus` (transiciones D4),
       `cancel`, `findAgenda`, `findOne`.
-- [ ] **Back:** validaciones (no pasado, entidades activas, end>start).
-- [ ] **Back:** `AppointmentsController` con guards.
-- [ ] **Back:** registrar `AppointmentsModule` en `app.module`.
-- [ ] **Prueba:** turno válido, solapamiento mismo vet (409), otro vet (ok),
+- [x] **Back:** validaciones (no pasado, entidades activas, end>start).
+- [x] **Back:** `AppointmentsController` con guards.
+- [x] **Back:** registrar `AppointmentsModule` en `app.module`.
+- [x] **Prueba:** turno válido, solapamiento mismo vet (409), otro vet (ok),
       cancelado no cuenta, pasado (rechazo), transiciones de estado, y **test de
       concurrencia** (dos reservas simultáneas → una sola gana).

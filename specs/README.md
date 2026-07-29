@@ -34,7 +34,7 @@ Owner: Juan (proyecto individual).
 ## 3. Estado actual
 
 ### En curso / próximo
-- Siguiente: **P1-02 (Mascotas)**.
+- Siguiente: **P2-02 (Historia clínica / consultas)**.
 
 ### Hecho
 - **F-01 (Fundación)**: NestJS + TypeORM + PostgreSQL + Docker operativos.
@@ -47,6 +47,21 @@ Owner: Juan (proyecto individual).
 - **P1-01 (Dueños/clientes)**: CRUD completo (`/api/owners`) protegido por JWT,
   búsqueda por nombre/teléfono/documento (ILIKE), paginación, documento único
   parcial (permite múltiples `null`), baja lógica (`active=false`, solo ADMIN).
+- **P1-02 (Mascotas)**: CRUD (`/api/pets`) relacionado 1-N con `Owner`, edad
+  calculada desde `birth_date`, ficha del dueño muestra sus mascotas, regla de
+  no dar de baja un dueño con mascotas activas (409).
+- **P1-03 (Veterinarios)**: CRUD (`/api/veterinarians`), matrícula única
+  parcial, ver/listar para ADMIN y EMPLOYEE, crear/editar/borrar solo ADMIN.
+- **P1-04 (Productos + Stock)**: catálogo (`/api/products`,
+  `/api/product-categories`) con margen calculado; stock con patrón ledger +
+  nivel materializado (`stock_levels`/`stock_movements`), `StockService.applyMovement`
+  transaccional con `SELECT ... FOR UPDATE` (probado con 20 descuentos
+  concurrentes sobre el mismo producto, sin pérdidas).
+- **P2-01 (Turnos)**: `/api/appointments` con control de solapamiento por
+  veterinario usando advisory lock transaccional (`pg_advisory_xact_lock`),
+  transiciones de estado (D4), reprogramación con revalidación, cancelados no
+  cuentan para el solapamiento. Probado con 10 reservas simultáneas al mismo
+  horario/veterinario: solo 1 ganó, el resto recibió 409.
 
 ---
 
@@ -57,10 +72,10 @@ Owner: Juan (proyecto individual).
 | F-01 | Fundación (setup NestJS + Postgres + TypeORM + Docker) | Fundación | ✅ Hecho | — |
 | F-02 | Autenticación y roles (JWT) | Fundación | ✅ Hecho | F-01 |
 | P1-01 | Dueños (clientes) | Fase 1 | ✅ Hecho | F-02 |
-| P1-02 | Mascotas | Fase 1 | ☐ Pendiente | P1-01 |
-| P1-03 | Veterinarios | Fase 1 | ☐ Pendiente | F-02 |
-| P1-04 | Productos + Stock | Fase 1 | ☐ Pendiente | F-02 |
-| P2-01 | Turnos (con reglas de solapamiento) | Fase 2 | ☐ Pendiente | P1-02, P1-03 |
+| P1-02 | Mascotas | Fase 1 | ✅ Hecho | P1-01 |
+| P1-03 | Veterinarios | Fase 1 | ✅ Hecho | F-02 |
+| P1-04 | Productos + Stock | Fase 1 | ✅ Hecho | F-02 |
+| P2-01 | Turnos (con reglas de solapamiento) | Fase 2 | ✅ Hecho | P1-02, P1-03 |
 | P2-02 | Historia clínica / consultas | Fase 2 | ☐ Pendiente | P2-01 |
 | P2-03 | Vacunas (descuenta stock) | Fase 2 | ☐ Pendiente | P1-02, P1-04 |
 | P3-01 | Documentación Swagger + tests | Fase 3 | ☐ Pendiente | todo |

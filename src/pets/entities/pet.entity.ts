@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Owner } from '../../owners/entities/owner.entity';
+import { decimalTransformer } from '../../common/transformers/decimal.transformer';
 
 export enum PetSpecies {
   PERRO = 'PERRO',
@@ -59,11 +60,7 @@ export class Pet {
     precision: 6,
     scale: 3,
     nullable: true,
-    transformer: {
-      to: (value?: number | null) => value,
-      from: (value?: string | null) =>
-        value === null || value === undefined ? null : parseFloat(value),
-    },
+    transformer: decimalTransformer,
   })
   weight: number | null;
 

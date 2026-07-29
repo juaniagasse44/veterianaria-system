@@ -136,18 +136,18 @@ segura incluso con operaciones simultáneas.
   `GET /movements?productId=`, `POST /adjust`, `POST /initial`.
 
 ## Criterios de aceptación
-- [ ] CRUD de productos y categorías; endpoints con JWT.
-- [ ] Búsqueda de producto por nombre/sku/barcode.
-- [ ] Margen calculado = sale_price − cost (y % si aplica).
-- [ ] Cargar stock inicial crea un movimiento INITIAL y setea el nivel.
-- [ ] Un ajuste manual genera un movimiento ADJUSTMENT con la diferencia y
+- [x] CRUD de productos y categorías; endpoints con JWT.
+- [x] Búsqueda de producto por nombre/sku/barcode.
+- [x] Margen calculado = sale_price − cost (y % si aplica).
+- [x] Cargar stock inicial crea un movimiento INITIAL y setea el nivel.
+- [x] Un ajuste manual genera un movimiento ADJUSTMENT con la diferencia y
       actualiza el nivel.
-- [ ] `applyMovement` de salida descuenta y registra el movimiento **en la misma
+- [x] `applyMovement` de salida descuenta y registra el movimiento **en la misma
       transacción**; si algo falla, no queda inconsistente.
-- [ ] `stock_levels.quantity == SUM(movements)` se mantiene siempre.
-- [ ] Productos con `track_stock=false` no generan movimientos.
-- [ ] `GET /low` lista los productos bajo mínimo; `valuation` da el total correcto.
-- [ ] (Si se testea concurrencia) dos salidas simultáneas del mismo producto no
+- [x] `stock_levels.quantity == SUM(movements)` se mantiene siempre.
+- [x] Productos con `track_stock=false` no generan movimientos.
+- [x] `GET /low` lista los productos bajo mínimo; `valuation` da el total correcto.
+- [x] (Si se testea concurrencia) dos salidas simultáneas del mismo producto no
       rompen el nivel — el lock las serializa.
 
 ## Riesgos / notas
@@ -165,11 +165,11 @@ segura incluso con operaciones simultáneas.
   `decimal(14,4)`. Nunca float para plata.
 
 ## Tareas
-- [ ] **DB:** migración `product_categories` + `products` + índices.
-- [ ] **DB:** migración `stock_levels` + `stock_movements` + índices/únicos.
-- [ ] **Back:** módulo `products` (entidades, DTOs, services, controllers).
-- [ ] **Back:** módulo `stock` con `applyMovement` transaccional (lock D2).
-- [ ] **Back:** endpoints de stock (levels, low, valuation, movements, adjust, initial).
-- [ ] **Back:** registrar ambos módulos en `app.module`.
-- [ ] **Prueba:** CRUD productos, stock inicial, ajuste, bajo-mínimo, valorización,
+- [x] **DB:** migración `product_categories` + `products` + índices.
+- [x] **DB:** migración `stock_levels` + `stock_movements` + índices/únicos.
+- [x] **Back:** módulo `products` (entidades, DTOs, services, controllers).
+- [x] **Back:** módulo `stock` con `applyMovement` transaccional (lock D2).
+- [x] **Back:** endpoints de stock (levels, low, valuation, movements, adjust, initial).
+- [x] **Back:** registrar ambos módulos en `app.module`.
+- [x] **Prueba:** CRUD productos, stock inicial, ajuste, bajo-mínimo, valorización,
       producto sin track_stock, y (opcional pero recomendado) test de concurrencia.

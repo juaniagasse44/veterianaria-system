@@ -8,6 +8,9 @@ import { AuthModule } from './auth/auth.module';
 import { OwnersModule } from './owners/owners.module';
 import { PetsModule } from './pets/pets.module';
 import { VeterinariansModule } from './veterinarians/veterinarians.module';
+import { ProductsModule } from './products/products.module';
+import { StockModule } from './stock/stock.module';
+import { AppointmentsModule } from './appointments/appointments.module';
 
 @Module({
   imports: [
@@ -36,6 +39,9 @@ import { VeterinariansModule } from './veterinarians/veterinarians.module';
     OwnersModule,
     PetsModule,
     VeterinariansModule,
+    ProductsModule,
+    StockModule,
+    AppointmentsModule,
   ],
 })
 export class AppModule {}
