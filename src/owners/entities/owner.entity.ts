@@ -3,9 +3,11 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Pet } from '../../pets/entities/pet.entity';
 
 @Entity('owners')
 export class Owner {
@@ -41,4 +43,7 @@ export class Owner {
 
   @UpdateDateColumn({ name: 'last_update_date' })
   lastUpdateDate: Date;
+
+  @OneToMany(() => Pet, (pet) => pet.owner)
+  pets: Pet[];
 }
