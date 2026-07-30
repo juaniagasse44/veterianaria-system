@@ -17,10 +17,10 @@ services:
       retries: 10
 
   api:
-    build: .
+    build: ./backend
     restart: unless-stopped
     env_file:
-      - .env
+      - ./backend/.env
     environment:
       DATABASE_HOST: db
       DATABASE_PORT: 5432

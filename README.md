@@ -1,5 +1,9 @@
 # VetSystem — API
 
+> Monorepo: el código del backend vive en [`backend/`](backend/). Los comandos
+> `npm` de este documento se corren desde esa carpeta salvo que se indique lo
+> contrario; `docker-compose.yml` orquesta todo desde la raíz.
+
 Backend de gestión para una veterinaria: dueños y mascotas, veterinarios,
 catálogo de productos con control de inventario, turnos con reglas reales de
 solapamiento, historia clínica y vacunas que descuentan stock automáticamente.
@@ -74,13 +78,13 @@ modelo de datos, criterios de aceptación) antes de programarse.
 1. Copiar el archivo de variables de entorno:
 
    ```bash
-   cp .env.example .env
+   cp backend/.env.example backend/.env
    ```
 
-2. Levantar API + base de datos:
+2. Levantar API + base de datos (desde la raíz del repo):
 
    ```bash
-   docker-compose up --build
+   docker-compose --env-file backend/.env up --build
    ```
 
    Esto levanta `db` (Postgres 16) y `api` (NestJS). La API espera a que la
@@ -98,12 +102,14 @@ modelo de datos, criterios de aceptación) antes de programarse.
 4. Crear el usuario ADMIN inicial (una sola vez):
 
    ```bash
-   docker compose exec api npm run seed:admin
+   docker compose --env-file backend/.env exec api npm run seed:admin
    ```
 
-   Usa `ADMIN_EMAIL` / `ADMIN_PASSWORD` del `.env`.
+   Usa `ADMIN_EMAIL` / `ADMIN_PASSWORD` del `backend/.env`.
 
 ## Cómo levantar (local, sin Docker)
+
+Todos los pasos siguientes se corren dentro de `backend/`:
 
 1. Tener Postgres corriendo localmente y crear la base indicada en `.env`.
 2. `cp .env.example .env` y ajustar `DATABASE_HOST` a `localhost` (en Docker
@@ -115,8 +121,8 @@ modelo de datos, criterios de aceptación) antes de programarse.
 
 ## Variables de entorno
 
-Ver [.env.example](.env.example). Todas son requeridas: la app no arranca si
-falta alguna o tiene un tipo inválido (validación al bootstrap).
+Ver [backend/.env.example](backend/.env.example). Todas son requeridas: la app
+no arranca si falta alguna o tiene un tipo inválido (validación al bootstrap).
 
 ## Documentación de la API (Swagger)
 
@@ -138,15 +144,20 @@ ven todos los endpoints agrupados por módulo, con sus DTOs documentados
 
 ## Migraciones
 
+Comandos (desde `backend/`):
+
 - `npm run migration:generate -- migrations/NombreMigracion` — genera una
   migración a partir del diff entre entidades y el estado actual de la DB.
 - `npm run migration:run` — corre migraciones pendientes.
 - `npm run migration:revert` — revierte la última migración.
 
 `synchronize` está deshabilitado siempre: todo cambio de esquema pasa por una
-migración versionada (ver decisión D1 en [specs/f-01-fundacion.md](specs/f-01-fundacion.md)).
+migración versionada (ver decisión D1 en
+[backend/specs/f-01-fundacion.md](backend/specs/f-01-fundacion.md)).
 
 ## Tests
+
+Desde `backend/`:
 
 ```bash
 npm test           # unitarios (Jest, con repos mockeados — no tocan la DB)
@@ -164,17 +175,17 @@ separada (`vetsystem_test`), nunca contra la de desarrollo. Antes de correrlos
 una vez:
 
 ```bash
-docker compose exec db psql -U postgres -c "CREATE DATABASE vetsystem_test;"
+docker compose --env-file backend/.env exec db psql -U postgres -c "CREATE DATABASE vetsystem_test;"
 ```
 
 Las migraciones corren solas al bootstrapear la app de test
 (`migrationsRun: true`), igual que en dev. La configuración vive en
-[.env.test](.env.test) + [test/setup-env.ts](test/setup-env.ts).
+[backend/.env.test](backend/.env.test) + [backend/test/setup-env.ts](backend/test/setup-env.ts).
 
-- [`test/flow.e2e-spec.ts`](test/flow.e2e-spec.ts) — flujo completo: dueño →
-  mascota → turno → consulta (marca atendido + actualiza peso) → vacuna
-  (descuenta stock).
-- [`test/concurrency.e2e-spec.ts`](test/concurrency.e2e-spec.ts) — **la parte
+- [`backend/test/flow.e2e-spec.ts`](backend/test/flow.e2e-spec.ts) — flujo
+  completo: dueño → mascota → turno → consulta (marca atendido + actualiza
+  peso) → vacuna (descuenta stock).
+- [`backend/test/concurrency.e2e-spec.ts`](backend/test/concurrency.e2e-spec.ts) — **la parte
   más valiosa**: dispara N reservas de turno simultáneas para el mismo
   veterinario/horario (solo una debe ganar, el resto 409) y N descuentos de
   stock simultáneos del mismo producto (el nivel final debe coincidir exacto
@@ -200,6 +211,8 @@ Toda respuesta de error de la API tiene la forma:
 
 ## Scripts
 
+Desde `backend/`:
+
 ```bash
 npm run start:dev       # desarrollo con watch
 npm run build            # compilar a dist/
@@ -213,13 +226,13 @@ npm run seed:admin        # crea el usuario ADMIN inicial
 ## Método SDD (Spec-Driven Development)
 
 Este proyecto no se programó "sobre la marcha": cada módulo tiene una spec en
-[specs/](specs/README.md) escrita **antes** del código, con objetivo, historias
-de usuario, decisiones de diseño explícitas (y su porqué), modelo de datos,
-contrato de la API y criterios de aceptación verificables. La regla es no
-programar contra una spec que no esté aprobada, y marcar sus checkboxes a
-medida que se implementa y verifica cada criterio.
+[backend/specs/](backend/specs/README.md) escrita **antes** del código, con
+objetivo, historias de usuario, decisiones de diseño explícitas (y su
+porqué), modelo de datos, contrato de la API y criterios de aceptación
+verificables. La regla es no programar contra una spec que no esté aprobada,
+y marcar sus checkboxes a medida que se implementa y verifica cada criterio.
 
-El [mapa de specs](specs/README.md#4-mapa-de-specs) muestra el estado de cada
+El [mapa de specs](backend/specs/README.md#4-mapa-de-specs) muestra el estado de cada
 módulo y el orden de construcción (`f-01` → `f-02` → `p1-01` → … → `p3-01`,
 donde el orden alfabético de los archivos es el orden real en que se
 construyeron).
@@ -229,7 +242,7 @@ construyeron).
 Un resumen de las decisiones que más pesan en el diseño (el detalle completo,
 con el razonamiento, está en cada spec):
 
-- **Stock: ledger + nivel materializado** ([P1-04](specs/p1-04-productos-stock.md)).
+- **Stock: ledger + nivel materializado** ([P1-04](backend/specs/p1-04-productos-stock.md)).
   `stock_movements` es un libro inmutable de toda variación (auditoría);
   `stock_levels` es la existencia actual materializada, para lectura rápida y
   como fila a lockear. `StockService.applyMovement(manager, dto)` recibe el
@@ -242,18 +255,18 @@ con el razonamiento, está en cada spec):
   para que dos descuentos simultáneos del mismo producto no se pisen. Se
   permite terminar en negativo por defecto — en una vet real no se puede
   bloquear una vacuna ya aplicada por un descuadre de inventario.
-- **Turnos: solapamiento con advisory lock** ([P2-01](specs/p2-01-turnos.md)).
+- **Turnos: solapamiento con advisory lock** ([P2-01](backend/specs/p2-01-turnos.md)).
   Al crear/reprogramar un turno, se toma `pg_advisory_xact_lock(veterinarianId)`
   dentro de la transacción antes de verificar solapamiento — serializa por
   veterinario sin bloquear turnos de otros profesionales, y se libera solo al
   cerrar la transacción.
-- **Historia clínica conecta con turnos** ([P2-02](specs/p2-02-historia-clinica.md)).
+- **Historia clínica conecta con turnos** ([P2-02](backend/specs/p2-02-historia-clinica.md)).
   Registrar una consulta desde un turno lo marca `ATENDIDO` sin importar si
   estaba `PENDIENTE` o `CONFIRMADO` — una decisión deliberada: el evento
   clínico es una señal más fuerte que el flujo de estados que gestiona
   recepción, así que puentea esa cadena en vez de reusar el endpoint estricto
   de cambio de estado.
-- **Vacunas conectan historia clínica + stock** ([P2-03](specs/p2-03-vacunas.md)).
+- **Vacunas conectan historia clínica + stock** ([P2-03](backend/specs/p2-03-vacunas.md)).
   Si la vacuna tiene un producto asociado, insertar el registro y descontar
   el stock van en la misma transacción — si algo falla, no queda ni la vacuna
   ni el movimiento a medias.
@@ -268,9 +281,9 @@ con el razonamiento, está en cada spec):
 **Swagger — vista general** (`/api/docs`), con los endpoints agrupados por tag
 y el candado Bearer para autenticarse:
 
-![Swagger — vista general](docs/screenshots/swagger-overview.png)
+![Swagger — vista general](backend/docs/screenshots/swagger-overview.png)
 
 **Detalle de un endpoint** (`POST /api/owners`) con el DTO documentado y su
 ejemplo:
 
-![Swagger — crear un dueño](docs/screenshots/swagger-create-owner.png)
+![Swagger — crear un dueño](backend/docs/screenshots/swagger-create-owner.png)
