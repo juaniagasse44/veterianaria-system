@@ -1,4 +1,6 @@
 import type { Screen } from '../types'
+import { useAuth } from '../auth/AuthContext'
+import { initials } from '../utils/helpers'
 import { Ico } from './Ico'
 
 const SCREEN_TITLES: Record<Screen, string> = {
@@ -14,6 +16,8 @@ const SCREEN_TITLES: Record<Screen, string> = {
 }
 
 export function TopBar({ screen, onMenuToggle }: { screen: Screen; onMenuToggle: () => void }) {
+  const { user } = useAuth()
+
   return (
     <header className="fixed top-0 left-0 lg:left-60 right-0 h-16 bg-white border-b border-slate-200 z-20 flex items-center px-4 lg:px-6 gap-3">
       <button
@@ -44,7 +48,7 @@ export function TopBar({ screen, onMenuToggle }: { screen: Screen; onMenuToggle:
       </button>
 
       <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center text-white text-xs font-bold cursor-pointer hover:bg-teal-700 transition-colors">
-        MR
+        {user ? initials(user.fullName) : ''}
       </div>
     </header>
   )

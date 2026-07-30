@@ -1,5 +1,12 @@
 import type { Screen } from '../types'
+import { useAuth } from '../auth/AuthContext'
+import { initials } from '../utils/helpers'
 import { Ico } from './Ico'
+
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: 'Administrador',
+  EMPLOYEE: 'Recepcionista',
+}
 
 const NAV: { id: Screen; label: string; icon: string }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -24,6 +31,8 @@ export function Sidebar({
   mobileOpen: boolean
   onClose: () => void
 }) {
+  const { user, logout } = useAuth()
+
   return (
     <>
       {/* Mobile overlay */}
@@ -121,14 +130,17 @@ export function Sidebar({
         <div className="px-3 py-3 border-t border-slate-200 space-y-0.5 flex-shrink-0">
           <div className="flex items-center gap-2.5 px-3 py-2">
             <div className="w-7 h-7 rounded-full bg-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-              MR
+              {user ? initials(user.fullName) : ''}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-slate-800 truncate leading-tight">M. Rodríguez</p>
-              <p className="text-xs text-slate-400 leading-tight">Recepcionista</p>
+              <p className="text-sm font-medium text-slate-800 truncate leading-tight">{user?.fullName}</p>
+              <p className="text-xs text-slate-400 leading-tight">{user ? (ROLE_LABELS[user.role] ?? user.role) : ''}</p>
             </div>
           </div>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors">
+          <button
+            onClick={logout}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+          >
             <Ico name="logout" size={15} className="text-slate-400" />
             Cerrar sesión
           </button>

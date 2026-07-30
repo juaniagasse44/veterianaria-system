@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import type { Screen } from './types'
+import { AuthProvider, useAuth } from './auth/AuthContext'
 import { Sidebar } from './components/Sidebar'
 import { TopBar } from './components/TopBar'
+import { Ico } from './components/Ico'
 import { NuevoTurnoModal } from './components/modals/NuevoTurnoModal'
 import { NuevoDuenoModal } from './components/modals/NuevoDuenoModal'
+import { LoginScreen } from './pages/LoginScreen'
 import { DashboardScreen } from './pages/DashboardScreen'
 import { MascotasScreen } from './pages/MascotasScreen'
 import { TurnosScreen } from './pages/TurnosScreen'
@@ -14,7 +17,20 @@ import { VacunasScreen } from './pages/VacunasScreen'
 import { ProductosScreen } from './pages/ProductosScreen'
 import { VeterinariosScreen } from './pages/VeterinariosScreen'
 
-export default function App() {
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center animate-pulse">
+          <Ico name="heart" size={18} className="text-white" />
+        </div>
+        <p className="text-sm text-slate-400">Cargando…</p>
+      </div>
+    </div>
+  )
+}
+
+function Dashboard() {
   const [screen, setScreen] = useState<Screen>('dashboard')
   const [mobileOpen, setMobileOpen] = useState(false)
   const [showNuevoTurno, setShowNuevoTurno] = useState(false)
@@ -51,5 +67,21 @@ export default function App() {
       {showNuevoTurno && <NuevoTurnoModal onClose={() => setShowNuevoTurno(false)} />}
       {showNuevoDueno && <NuevoDuenoModal onClose={() => setShowNuevoDueno(false)} />}
     </div>
+  )
+}
+
+function AppShell() {
+  const { status } = useAuth()
+
+  if (status === 'loading') return <LoadingScreen />
+  if (status === 'unauthenticated') return <LoginScreen />
+  return <Dashboard />
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppShell />
+    </AuthProvider>
   )
 }

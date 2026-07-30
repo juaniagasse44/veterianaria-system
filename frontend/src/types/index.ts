@@ -108,3 +108,22 @@ export interface VetStaff {
   email: string
   active: boolean
 }
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
+export type UserRole = 'ADMIN' | 'EMPLOYEE'
+
+export interface AuthUser {
+  id: number
+  email: string
+  fullName: string
+  role: UserRole
+  active: boolean
+  creationDate: string
+  lastUpdateDate: string
+}
+
+export interface LoginResponse {
+  accessToken: string
+  user: AuthUser
+}

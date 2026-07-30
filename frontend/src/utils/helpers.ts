@@ -32,6 +32,15 @@ export const getOwner = (id: number) => OWNERS.find(o => o.id === id)
 export const getPet = (id: number) => PETS.find(p => p.id === id)
 export const getVet = (id: number) => VETS.find(v => v.id === id)
 
+export function initials(name: string): string {
+  return name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
+
 export function catalogStockStatus(p: CatalogProduct): 'OK' | 'Bajo' | 'Sin stock' | null {
   if (!p.controlsStock) return null
   if (p.qty === 0) return 'Sin stock'
