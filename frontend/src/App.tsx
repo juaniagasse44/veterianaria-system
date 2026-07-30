@@ -5,7 +5,6 @@ import { Sidebar } from './components/Sidebar'
 import { TopBar } from './components/TopBar'
 import { Ico } from './components/Ico'
 import { NuevoTurnoModal } from './components/modals/NuevoTurnoModal'
-import { NuevoDuenoModal } from './components/modals/NuevoDuenoModal'
 import { LoginScreen } from './pages/LoginScreen'
 import { DashboardScreen } from './pages/DashboardScreen'
 import { MascotasScreen } from './pages/MascotasScreen'
@@ -34,14 +33,13 @@ function Dashboard() {
   const [screen, setScreen] = useState<Screen>('dashboard')
   const [mobileOpen, setMobileOpen] = useState(false)
   const [showNuevoTurno, setShowNuevoTurno] = useState(false)
-  const [showNuevoDueno, setShowNuevoDueno] = useState(false)
 
   function renderScreen() {
     switch (screen) {
       case 'dashboard':   return <DashboardScreen onNavigate={setScreen} />
       case 'mascotas':    return <MascotasScreen />
       case 'turnos':      return <TurnosScreen onNewAppt={() => setShowNuevoTurno(true)} />
-      case 'duenos':      return <DuenosScreen onNewOwner={() => setShowNuevoDueno(true)} />
+      case 'duenos':      return <DuenosScreen />
       case 'stock':       return <StockScreen />
       case 'historia':    return <HistoriaScreen />
       case 'vacunas':     return <VacunasScreen />
@@ -65,7 +63,6 @@ function Dashboard() {
       </main>
 
       {showNuevoTurno && <NuevoTurnoModal onClose={() => setShowNuevoTurno(false)} />}
-      {showNuevoDueno && <NuevoDuenoModal onClose={() => setShowNuevoDueno(false)} />}
     </div>
   )
 }

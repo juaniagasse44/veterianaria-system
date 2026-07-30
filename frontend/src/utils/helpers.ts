@@ -22,6 +22,16 @@ export function formatDate(d: string): string {
   })
 }
 
+/** Para timestamps ISO reales del backend (a diferencia de formatDate, que
+ * espera fechas simples 'YYYY-MM-DD' de los datos mock). */
+export function formatApiDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('es-AR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+}
+
 export function stockStatus(p: Product): 'OK' | 'Bajo' | 'Sin stock' {
   if (p.qty === 0) return 'Sin stock'
   if (p.qty < p.min) return 'Bajo'

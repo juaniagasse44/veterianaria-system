@@ -127,3 +127,43 @@ export interface LoginResponse {
   accessToken: string
   user: AuthUser
 }
+
+// ─── API — generic ────────────────────────────────────────────────────────────
+
+export interface PaginatedResult<T> {
+  data: T[]
+  total: number
+  page: number
+  limit: number
+}
+
+// ─── API — Owners (backend real, distinto del mock `Owner` de arriba) ─────────
+
+export interface ApiOwner {
+  id: number
+  fullName: string
+  document: string | null
+  phone: string | null
+  email: string | null
+  address: string | null
+  notes: string | null
+  active: boolean
+  creationDate: string
+  lastUpdateDate: string
+}
+
+export interface OwnerInput {
+  fullName: string
+  document?: string
+  phone?: string
+  email?: string
+  address?: string
+  notes?: string
+}
+
+export interface ListOwnersParams {
+  search?: string
+  active?: boolean
+  page?: number
+  limit?: number
+}
