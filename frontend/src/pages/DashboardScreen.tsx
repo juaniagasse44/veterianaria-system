@@ -1,21 +1,126 @@
-import type { Screen, ApptStatus } from '../types'
-import { APPTS, PRODUCTS, VACCINES, VETS, PETS, OWNERS } from '../data/mockData'
-import { parseTime, stockStatus, getOwner, getPet, getVet } from '../utils/helpers'
+import { useEffect, useMemo, useState } from 'react'
+import type {
+  ApiAppointment,
+  ApiOwner,
+  ApiStockLevel,
+  ApiVaccination,
+  ApiVeterinarian,
+  AppointmentReason,
+  AppointmentStatus,
+  Screen,
+} from '../types'
+import { listAppointments } from '../api/appointments'
+import { listPets } from '../api/pets'
+import { listOwners } from '../api/owners'
+import { listVeterinarians } from '../api/veterinarians'
+import { listLowStock } from '../api/stock'
+import { listUpcomingVaccinations } from '../api/vaccinations'
+import { ApiError } from '../lib/api'
+import { colorForId, formatApiTime, formatWeekdayDate, todayApiDate } from '../utils/helpers'
 import { KPICard } from '../components/KPICard'
 import { Btn } from '../components/Btn'
 import { Ico } from '../components/Ico'
 import { Badge } from '../components/Badge'
 import { EmptyState } from '../components/EmptyState'
 
+const STATUS_LABELS: Record<AppointmentStatus, string> = {
+  PENDIENTE: 'Pendiente',
+  CONFIRMADO: 'Confirmado',
+  ATENDIDO: 'Atendido',
+  CANCELADO: 'Cancelado',
+}
+
+const REASON_LABELS: Record<AppointmentReason, string> = {
+  CONSULTA: 'Consulta',
+  CONTROL: 'Control',
+  VACUNACION: 'Vacunación',
+  CIRUGIA: 'Cirugía',
+  OTRO: 'Otro',
+}
+
+const DISTRIBUTION: [string, AppointmentStatus, string][] = [
+  ['Atendidos', 'ATENDIDO', 'bg-teal-500'],
+  ['Confirmados', 'CONFIRMADO', 'bg-blue-500'],
+  ['Pendientes', 'PENDIENTE', 'bg-amber-400'],
+  ['Cancelados', 'CANCELADO', 'bg-red-400'],
+]
+
+const VACCINES_DUE_DAYS = 30
+
 export function DashboardScreen({ onNavigate }: { onNavigate: (s: Screen) => void }) {
-  const todayAppts = APPTS.filter(a => a.date === '2026-07-29').sort(
-    (a, b) => parseTime(a.time) - parseTime(b.time),
-  )
-  const lowStock = PRODUCTS.filter(p => stockStatus(p) !== 'OK')
-  const vacsDue = VACCINES.filter(v => {
-    const diff = (new Date(v.nextDue).getTime() - Date.now()) / 86400000
-    return diff >= 0 && diff <= 30
-  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const [todayAppts, setTodayAppts] = useState<ApiAppointment[]>([])
+  const [petsTotal, setPetsTotal] = useState(0)
+  const [owners, setOwners] = useState<ApiOwner[]>([])
+  const [veterinarians, setVeterinarians] = useState<ApiVeterinarian[]>([])
+  const [lowStock, setLowStock] = useState<ApiStockLevel[]>([])
+  const [vaccinesDue, setVaccinesDue] = useState<ApiVaccination[]>([])
+
+  async function load() {
+    setLoading(true)
+    setError(null)
+    try {
+      const today = todayApiDate()
+      const [apptsResult, petsResult, ownersActive, ownersInactive, vetsResult, lowStockResult, vaccinesResult] =
+        await Promise.all([
+          listAppointments({ date: today }),
+          listPets({ limit: 1 }),
+          listOwners({ active: true, limit: 200 }),
+          listOwners({ active: false, limit: 200 }),
+          listVeterinarians({ active: true, limit: 200 }),
+          listLowStock(),
+          listUpcomingVaccinations({ days: VACCINES_DUE_DAYS }),
+        ])
+      setTodayAppts(apptsResult)
+      setPetsTotal(petsResult.total)
+      setOwners([...ownersActive.data, ...ownersInactive.data])
+      setVeterinarians(vetsResult.data)
+      setLowStock(lowStockResult)
+      setVaccinesDue(vaccinesResult)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'No se pudo cargar el dashboard.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    load()
+  }, [])
+
+  const ownerById = useMemo(() => {
+    const map = new Map<number, ApiOwner>()
+    owners.forEach(o => map.set(o.id, o))
+    return map
+  }, [owners])
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+        <EmptyState icon="clock" title="Cargando..." description="Reuniendo los datos del dashboard." />
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+        <EmptyState
+          icon="alert"
+          title="No se pudo cargar"
+          description={error}
+          action={
+            <Btn variant="outline" size="sm" onClick={load}>
+              Reintentar
+            </Btn>
+          }
+        />
+      </div>
+    )
+  }
+
+  const next = todayAppts.find(a => a.status === 'PENDIENTE' || a.status === 'CONFIRMADO')
 
   return (
     <div className="space-y-6">
@@ -24,31 +129,25 @@ export function DashboardScreen({ onNavigate }: { onNavigate: (s: Screen) => voi
         <KPICard
           label="Turnos hoy"
           value={todayAppts.length}
-          sub={`${todayAppts.filter(a => a.status === 'Atendido').length} atendidos · ${todayAppts.filter(a => a.status === 'Pendiente').length} pendientes`}
+          sub={`${todayAppts.filter(a => a.status === 'ATENDIDO').length} atendidos · ${todayAppts.filter(a => a.status === 'PENDIENTE').length} pendientes`}
           icon="calendar"
           color="teal"
         />
         <KPICard
           label="Mascotas registradas"
-          value={PETS.length}
-          sub={`${OWNERS.length} dueños en sistema`}
+          value={petsTotal}
+          sub={`${owners.filter(o => o.active).length} dueños en sistema`}
           icon="paw"
           color="blue"
         />
         <KPICard
           label="Productos bajo stock"
           value={lowStock.length}
-          sub={`${lowStock.filter(p => stockStatus(p) === 'Sin stock').length} sin stock — crítico`}
+          sub={`${lowStock.filter(s => s.quantity === 0).length} sin stock — crítico`}
           icon="layers"
           color="amber"
         />
-        <KPICard
-          label="Vacunas por vencer"
-          value={vacsDue.length}
-          sub="Próximos 30 días"
-          icon="syringe"
-          color="red"
-        />
+        <KPICard label="Vacunas por vencer" value={vaccinesDue.length} sub={`Próximos ${VACCINES_DUE_DAYS} días`} icon="syringe" color="red" />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-5">
@@ -57,50 +156,51 @@ export function DashboardScreen({ onNavigate }: { onNavigate: (s: Screen) => voi
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-slate-900">Turnos del día</h3>
-              <p className="text-xs text-slate-400 mt-0.5">Miércoles 29 de julio de 2026</p>
+              <p className="text-xs text-slate-400 mt-0.5 capitalize">{formatWeekdayDate(todayApiDate())}</p>
             </div>
             <Btn variant="ghost" size="sm" onClick={() => onNavigate('turnos')}>
               Ver agenda
               <Ico name="chevRight" size={14} />
             </Btn>
           </div>
-          <div className="divide-y divide-slate-100">
-            {todayAppts.slice(0, 8).map(a => {
-              const pet = getPet(a.petId)
-              const owner = getOwner(a.ownerId)
-              const vet = getVet(a.vetId)
-              return (
-                <div key={a.id} className="px-5 py-3 flex items-center gap-4 hover:bg-slate-50 transition-colors">
-                  <div className="min-w-[44px] text-right">
-                    <span className="text-sm font-semibold text-slate-700 tabular-nums">{a.time}</span>
+          {todayAppts.length === 0 ? (
+            <EmptyState icon="calendar" title="Sin turnos" description="No hay turnos para hoy." />
+          ) : (
+            <>
+              <div className="divide-y divide-slate-100">
+                {todayAppts.slice(0, 8).map(a => (
+                  <div key={a.id} className="px-5 py-3 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+                    <div className="min-w-[44px] text-right">
+                      <span className="text-sm font-semibold text-slate-700 tabular-nums">{formatApiTime(a.startAt)}</span>
+                    </div>
+                    <div
+                      className="w-0.5 self-stretch rounded-full flex-shrink-0"
+                      style={{ backgroundColor: colorForId(a.veterinarianId) }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-800 truncate">
+                        {a.pet.name}
+                        <span className="text-slate-400 font-normal"> · {REASON_LABELS[a.reason]}</span>
+                      </p>
+                      <p className="text-xs text-slate-400 mt-0.5 truncate">
+                        {ownerById.get(a.pet.ownerId)?.fullName ?? '—'} · {a.veterinarian.fullName}
+                      </p>
+                    </div>
+                    <Badge status={STATUS_LABELS[a.status]} />
                   </div>
-                  <div
-                    className="w-0.5 self-stretch rounded-full flex-shrink-0"
-                    style={{ backgroundColor: vet?.hue ?? '#0d9488' }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-800 truncate">
-                      {pet?.name}
-                      <span className="text-slate-400 font-normal"> · {a.reason}</span>
-                    </p>
-                    <p className="text-xs text-slate-400 mt-0.5 truncate">
-                      {owner?.name} · {vet?.name}
-                    </p>
-                  </div>
-                  <Badge status={a.status} />
+                ))}
+              </div>
+              {todayAppts.length > 8 && (
+                <div className="px-5 py-3 border-t border-slate-100 text-center">
+                  <button
+                    onClick={() => onNavigate('turnos')}
+                    className="text-xs text-teal-600 hover:text-teal-700 font-medium"
+                  >
+                    Ver {todayAppts.length - 8} turnos más
+                  </button>
                 </div>
-              )
-            })}
-          </div>
-          {todayAppts.length > 8 && (
-            <div className="px-5 py-3 border-t border-slate-100 text-center">
-              <button
-                onClick={() => onNavigate('turnos')}
-                className="text-xs text-teal-600 hover:text-teal-700 font-medium"
-              >
-                Ver {todayAppts.length - 8} turnos más
-              </button>
-            </div>
+              )}
+            </>
           )}
         </div>
 
@@ -124,15 +224,15 @@ export function DashboardScreen({ onNavigate }: { onNavigate: (s: Screen) => voi
                 description="Todos los productos están en niveles adecuados."
               />
             ) : (
-              lowStock.map(p => (
-                <div key={p.id} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors">
+              lowStock.map(s => (
+                <div key={s.id} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-800 truncate">{p.name}</p>
+                    <p className="text-sm font-medium text-slate-800 truncate">{s.product.name}</p>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      {p.qty} {p.unit} · mín. {p.min}
+                      {s.quantity} {s.product.unit} · mín. {s.minQuantity}
                     </p>
                   </div>
-                  <Badge status={stockStatus(p)} />
+                  <Badge status={s.quantity === 0 ? 'Sin stock' : 'Bajo'} />
                 </div>
               ))
             )}
@@ -145,14 +245,7 @@ export function DashboardScreen({ onNavigate }: { onNavigate: (s: Screen) => voi
         <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
           <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Distribución de turnos</h4>
           <div className="space-y-2.5">
-            {(
-              [
-                ['Atendidos', 'Atendido', 'bg-teal-500'],
-                ['Confirmados', 'Confirmado', 'bg-blue-500'],
-                ['Pendientes', 'Pendiente', 'bg-amber-400'],
-                ['Cancelados', 'Cancelado', 'bg-red-400'],
-              ] as [string, ApptStatus, string][]
-            ).map(([label, status, bg]) => {
+            {DISTRIBUTION.map(([label, status, bg]) => {
               const count = todayAppts.filter(a => a.status === status).length
               const pct = todayAppts.length ? Math.round((count / todayAppts.length) * 100) : 0
               return (
@@ -171,44 +264,46 @@ export function DashboardScreen({ onNavigate }: { onNavigate: (s: Screen) => voi
 
         <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
           <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Turnos por veterinario</h4>
-          <div className="space-y-2.5">
-            {VETS.map(v => {
-              const count = todayAppts.filter(a => a.vetId === v.id).length
-              const pct = todayAppts.length ? Math.round((count / todayAppts.length) * 100) : 0
-              return (
-                <div key={v.id} className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: v.hue }} />
-                  <span className="text-sm text-slate-600 flex-1 truncate">{v.name.replace('Dra. ', '').replace('Dr. ', '')}</span>
-                  <span className="text-sm font-semibold text-slate-800 tabular-nums">{count}</span>
-                  <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: v.hue }} />
+          {veterinarians.length === 0 ? (
+            <p className="text-sm text-slate-400">No hay veterinarios activos.</p>
+          ) : (
+            <div className="space-y-2.5">
+              {veterinarians.map(v => {
+                const count = todayAppts.filter(a => a.veterinarianId === v.id).length
+                const pct = todayAppts.length ? Math.round((count / todayAppts.length) * 100) : 0
+                const color = colorForId(v.id)
+                return (
+                  <div key={v.id} className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                    <span className="text-sm text-slate-600 flex-1 truncate">{v.fullName}</span>
+                    <span className="text-sm font-semibold text-slate-800 tabular-nums">{count}</span>
+                    <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
+                    </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         <div className="bg-teal-600 rounded-xl p-5 shadow-sm text-white">
           <h4 className="text-xs font-semibold text-teal-200 uppercase tracking-wide mb-1">Próximo turno</h4>
-          {(() => {
-            const next = todayAppts.find(a => a.status === 'Pendiente' || a.status === 'Confirmado')
-            if (!next) return <p className="text-teal-200 text-sm mt-2">No hay turnos pendientes.</p>
-            const pet = getPet(next.petId)
-            const owner = getOwner(next.ownerId)
-            const vet = getVet(next.vetId)
-            return (
-              <div className="mt-2 space-y-1.5">
-                <p className="text-xl font-bold tabular-nums">{next.time} hs</p>
-                <p className="text-base font-semibold text-white">{pet?.name}</p>
-                <p className="text-sm text-teal-100">{next.reason}</p>
-                <p className="text-xs text-teal-200">{owner?.name} · {vet?.name}</p>
-                <div className="pt-2">
-                  <Badge status={next.status} />
-                </div>
+          {!next ? (
+            <p className="text-teal-200 text-sm mt-2">No hay turnos pendientes.</p>
+          ) : (
+            <div className="mt-2 space-y-1.5">
+              <p className="text-xl font-bold tabular-nums">{formatApiTime(next.startAt)} hs</p>
+              <p className="text-base font-semibold text-white">{next.pet.name}</p>
+              <p className="text-sm text-teal-100">{REASON_LABELS[next.reason]}</p>
+              <p className="text-xs text-teal-200">
+                {ownerById.get(next.pet.ownerId)?.fullName ?? '—'} · {next.veterinarian.fullName}
+              </p>
+              <div className="pt-2">
+                <Badge status={STATUS_LABELS[next.status]} />
               </div>
-            )
-          })()}
+            </div>
+          )}
         </div>
       </div>
     </div>
