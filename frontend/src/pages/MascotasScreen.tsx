@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ApiOwner, ApiPet, ApiPetDetail, PetAge, PetSpecies } from '../types'
+import type { ApiConsultation, ApiOwner, ApiPet, ApiPetDetail, ApiVeterinarian, PetAge, PetSpecies } from '../types'
 import { listPets, deletePet, getPet } from '../api/pets'
 import { listOwners } from '../api/owners'
+import { listVeterinarians } from '../api/veterinarians'
+import { listConsultations } from '../api/consultations'
 import { ApiError } from '../lib/api'
 import { useAuth } from '../auth/AuthContext'
 import { formatApiDate } from '../utils/helpers'
@@ -9,7 +11,9 @@ import { Btn } from '../components/Btn'
 import { Ico } from '../components/Ico'
 import { SearchInput } from '../components/SearchInput'
 import { EmptyState } from '../components/EmptyState'
+import { Badge } from '../components/Badge'
 import { NuevaMascotaModal } from '../components/modals/NuevaMascotaModal'
+import { NuevaConsultaModal } from '../components/modals/NuevaConsultaModal'
 
 type ModalState = { mode: 'create' } | { mode: 'edit'; pet: ApiPet } | null
 
@@ -287,6 +291,12 @@ function PetDetail({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const [consultations, setConsultations] = useState<ApiConsultation[]>([])
+  const [veterinarians, setVeterinarians] = useState<ApiVeterinarian[]>([])
+  const [consultationsLoading, setConsultationsLoading] = useState(true)
+  const [consultationsError, setConsultationsError] = useState<string | null>(null)
+  const [showConsultaModal, setShowConsultaModal] = useState(false)
+
   function load() {
     setLoading(true)
     setError(null)
@@ -296,7 +306,41 @@ function PetDetail({
       .finally(() => setLoading(false))
   }
 
+  async function loadConsultations() {
+    setConsultationsLoading(true)
+    setConsultationsError(null)
+    try {
+      const [consultationsResult, vetsResult] = await Promise.all([
+        listConsultations({ petId, limit: 100 }),
+        listVeterinarians({ active: true, limit: 200 }),
+      ])
+      setConsultations(consultationsResult.data)
+      setVeterinarians(vetsResult.data)
+    } catch (err) {
+      setConsultationsError(
+        err instanceof ApiError ? err.message : 'No se pudo cargar la historia clínica.',
+      )
+    } finally {
+      setConsultationsLoading(false)
+    }
+  }
+
   useEffect(load, [petId])
+  useEffect(() => {
+    loadConsultations()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [petId])
+
+  const vetById = useMemo(() => {
+    const map = new Map<number, ApiVeterinarian>()
+    veterinarians.forEach(v => map.set(v.id, v))
+    return map
+  }, [veterinarians])
+
+  function handleConsultaSaved() {
+    setShowConsultaModal(false)
+    loadConsultations()
+  }
 
   return (
     <div className="space-y-5">
@@ -397,16 +441,76 @@ function PetDetail({
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 xl:col-span-2">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-sm font-semibold text-slate-900">Historia clínica</h3>
-              <Btn size="sm" disabled>
+              <Btn size="sm" onClick={() => setShowConsultaModal(true)}>
                 <Ico name="plus" size={13} />
                 Nueva entrada
               </Btn>
             </div>
-            <EmptyState
-              icon="file"
-              title="Próximamente"
-              description="La historia clínica se conecta a la API en la pantalla de Historia."
-            />
+            {consultationsLoading ? (
+              <EmptyState icon="clock" title="Cargando..." description="Buscando la historia clínica de la mascota." />
+            ) : consultationsError ? (
+              <EmptyState
+                icon="alert"
+                title="No se pudo cargar"
+                description={consultationsError}
+                action={
+                  <Btn variant="outline" size="sm" onClick={loadConsultations}>
+                    Reintentar
+                  </Btn>
+                }
+              />
+            ) : consultations.length === 0 ? (
+              <EmptyState
+                icon="file"
+                title="Sin consultas registradas"
+                description={`${pet.name} no tiene consultas en su historia clínica todavía.`}
+              />
+            ) : (
+              <div className="space-y-3">
+                {consultations.map((c, i) => {
+                  const vet = c.veterinarianId ? vetById.get(c.veterinarianId) : undefined
+                  return (
+                    <div key={c.id} className="border border-slate-200 rounded-lg overflow-hidden">
+                      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap bg-slate-50/50">
+                        <div className="flex items-center gap-2.5">
+                          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${i === 0 ? 'bg-teal-500' : 'bg-slate-300'}`} />
+                          <div>
+                            <p className="text-sm font-semibold text-slate-800">{c.reason ?? 'Consulta'}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                              {formatApiDate(c.consultationDate)}
+                              {vet ? ` · ${vet.fullName}` : ''}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {c.weight !== null && (
+                            <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1">
+                              <Ico name="weight" size={12} className="text-slate-400" />
+                              <span className="text-xs font-semibold text-slate-700 tabular-nums">{c.weight} kg</span>
+                            </div>
+                          )}
+                          {i === 0 && <Badge status="Atendido" />}
+                        </div>
+                      </div>
+                      <div className="px-4 py-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Diagnóstico</p>
+                          <p className="text-sm text-slate-700 leading-relaxed">{c.diagnosis ?? '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Tratamiento</p>
+                          <p className="text-sm text-slate-700 leading-relaxed">{c.treatment ?? '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Notas</p>
+                          <p className="text-sm text-slate-500 leading-relaxed">{c.notes ?? '—'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden xl:col-span-3">
@@ -429,6 +533,15 @@ function PetDetail({
             </div>
           </div>
         </div>
+      )}
+
+      {showConsultaModal && pet && (
+        <NuevaConsultaModal
+          petId={pet.id}
+          petName={pet.name}
+          onClose={() => setShowConsultaModal(false)}
+          onSaved={handleConsultaSaved}
+        />
       )}
     </div>
   )

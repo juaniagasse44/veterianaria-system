@@ -426,3 +426,46 @@ export interface ListAppointmentsParams {
   to?: string
   status?: AppointmentStatus
 }
+
+// ─── API — Consultations / historia clínica (backend real) ────────────────────
+
+/** A diferencia de `GET /appointments`, `GET /consultations` no trae `pet`ni
+ * `veterinarian` embebidos (solo columnas planas) — hay que resolver los
+ * nombres con los mismos mapas por id que ya usa el resto de las pantallas. */
+export interface ApiConsultation {
+  id: number
+  petId: number
+  appointmentId: number | null
+  veterinarianId: number | null
+  consultationDate: string
+  reason: string | null
+  diagnosis: string | null
+  treatment: string | null
+  weight: number | null
+  notes: string | null
+  creationDate: string
+  lastUpdateDate: string
+}
+
+export interface ConsultationInput {
+  petId: number
+  appointmentId?: number
+  veterinarianId?: number
+  reason?: string
+  diagnosis?: string
+  treatment?: string
+  weight?: number
+  notes?: string
+}
+
+/** Edición acotada (D4 del backend): no permite cambiar pet/turno/veterinario. */
+export type ConsultationUpdateInput = Omit<
+  ConsultationInput,
+  'petId' | 'appointmentId' | 'veterinarianId'
+>
+
+export interface ListConsultationsParams {
+  petId?: number
+  page?: number
+  limit?: number
+}
