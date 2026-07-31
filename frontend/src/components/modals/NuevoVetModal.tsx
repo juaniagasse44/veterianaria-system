@@ -1,53 +1,113 @@
+import { useState, type FormEvent } from 'react'
 import { Modal } from '../Modal'
 import { FormField } from '../FormField'
 import { Input } from '../Input'
 import { Select } from '../Select'
 import { Btn } from '../Btn'
+import { createVeterinarian, updateVeterinarian } from '../../api/veterinarians'
+import { ApiError } from '../../lib/api'
+import type { ApiVeterinarian } from '../../types'
 
-export function NuevoVetModal({ onClose }: { onClose: () => void }) {
+const SPECIALTY_PRESETS = [
+  'Clínica General',
+  'Cirugía',
+  'Dermatología',
+  'Traumatología',
+  'Cardiología',
+  'Oftalmología',
+  'Oncología',
+  'Otra',
+]
+
+export function NuevoVetModal({
+  vet,
+  onClose,
+  onSaved,
+}: {
+  vet?: ApiVeterinarian
+  onClose: () => void
+  onSaved: (vet: ApiVeterinarian) => void
+}) {
+  const isEdit = !!vet
+  const [fullName, setFullName] = useState(vet?.fullName ?? '')
+  const [licenseNumber, setLicenseNumber] = useState(vet?.licenseNumber ?? '')
+  const [specialty, setSpecialty] = useState(vet?.specialty ?? '')
+  const [phone, setPhone] = useState(vet?.phone ?? '')
+  const [email, setEmail] = useState(vet?.email ?? '')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Si el veterinario ya tiene una especialidad que no está en la lista fija
+  // (ej. cargada antes de existir este preset), la agregamos para no perderla
+  // ni pisarla silenciosamente al guardar.
+  const specialtyOptions =
+    specialty && !SPECIALTY_PRESETS.includes(specialty) ? [specialty, ...SPECIALTY_PRESETS] : SPECIALTY_PRESETS
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    setError(null)
+
+    if (fullName.trim().length < 2) {
+      setError('El nombre completo es obligatorio (mínimo 2 caracteres).')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const input = { fullName, licenseNumber, specialty, phone, email }
+      const saved = isEdit ? await updateVeterinarian(vet.id, input) : await createVeterinarian(input)
+      onSaved(saved)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'No se pudo guardar el veterinario.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <Modal title="Nuevo veterinario" onClose={onClose}>
-      <div className="space-y-4">
+    <Modal title={isEdit ? 'Editar veterinario' : 'Nuevo veterinario'} onClose={onClose}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-3 py-2">
+            {error}
+          </div>
+        )}
+
         <FormField label="Nombre completo">
-          <Input placeholder="Ej. Dra. Ana López" />
+          <Input placeholder="Ej. Dra. Ana López" value={fullName} onChange={setFullName} />
         </FormField>
         <div className="grid grid-cols-2 gap-4">
           <FormField label="Matrícula">
-            <Input placeholder="Ej. MV-12.345" />
+            <Input placeholder="Ej. MV-12.345" value={licenseNumber} onChange={setLicenseNumber} />
           </FormField>
           <FormField label="Especialidad">
-            <Select>
-              <option>Clínica General</option>
-              <option>Cirugía</option>
-              <option>Dermatología</option>
-              <option>Traumatología</option>
-              <option>Cardiología</option>
-              <option>Oftalmología</option>
-              <option>Oncología</option>
-              <option>Otra</option>
+            <Select value={specialty} onChange={setSpecialty}>
+              <option value="">— Sin especificar —</option>
+              {specialtyOptions.map(s => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
             </Select>
           </FormField>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <FormField label="Teléfono">
-            <Input placeholder="Ej. 11 4523-8901" />
+            <Input placeholder="Ej. 11 4523-8901" value={phone} onChange={setPhone} />
           </FormField>
           <FormField label="Email">
-            <Input type="email" placeholder="nombre@clinica.com.ar" />
+            <Input type="email" placeholder="nombre@clinica.com.ar" value={email} onChange={setEmail} />
           </FormField>
         </div>
-        <FormField label="Notas (opcional)">
-          <textarea
-            rows={2}
-            placeholder="Días de atención, observaciones..."
-            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 resize-none text-slate-900 placeholder:text-slate-400"
-          />
-        </FormField>
         <div className="flex gap-2 pt-2">
-          <Btn onClick={onClose}>Guardar veterinario</Btn>
-          <Btn variant="outline" onClick={onClose}>Cancelar</Btn>
+          <Btn type="submit" disabled={loading}>
+            {loading ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Guardar veterinario'}
+          </Btn>
+          <Btn type="button" variant="outline" onClick={onClose} disabled={loading}>
+            Cancelar
+          </Btn>
         </div>
-      </div>
+      </form>
     </Modal>
   )
 }

@@ -167,3 +167,32 @@ export interface ListOwnersParams {
   page?: number
   limit?: number
 }
+
+// ─── API — Veterinarians (backend real, distinto del mock `VetStaff`) ─────────
+
+export interface ApiVeterinarian {
+  id: number
+  fullName: string
+  licenseNumber: string | null
+  specialty: string | null
+  phone: string | null
+  email: string | null
+  active: boolean
+  creationDate: string
+  lastUpdateDate: string
+}
+
+export interface VeterinarianInput {
+  fullName: string
+  licenseNumber?: string
+  specialty?: string
+  phone?: string
+  email?: string
+}
+
+export interface ListVeterinariansParams {
+  search?: string
+  active?: boolean
+  page?: number
+  limit?: number
+}

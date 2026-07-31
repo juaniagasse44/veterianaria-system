@@ -51,6 +51,14 @@ export function initials(name: string): string {
     .toUpperCase()
 }
 
+const AVATAR_PALETTE = ['#0d9488', '#7c3aed', '#ea580c', '#2563eb', '#db2777', '#16a34a', '#ca8a04', '#64748b']
+
+/** Color determinístico para avatares de entidades reales (sin un campo de
+ * color propio en el backend, a diferencia del mock `Vet.hue`). */
+export function colorForId(id: number): string {
+  return AVATAR_PALETTE[id % AVATAR_PALETTE.length]
+}
+
 export function catalogStockStatus(p: CatalogProduct): 'OK' | 'Bajo' | 'Sin stock' | null {
   if (!p.controlsStock) return null
   if (p.qty === 0) return 'Sin stock'
