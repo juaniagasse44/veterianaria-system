@@ -367,3 +367,62 @@ export interface AdjustStockInput {
   minQuantity?: number
   notes?: string
 }
+
+// ─── API — Appointments (backend real) ─────────────────────────────────────────
+
+export type AppointmentReason = 'CONSULTA' | 'CONTROL' | 'VACUNACION' | 'CIRUGIA' | 'OTRO'
+export type AppointmentStatus = 'PENDIENTE' | 'CONFIRMADO' | 'ATENDIDO' | 'CANCELADO'
+
+/** Subset de `ApiPet`/`ApiVeterinarian` embebido por el backend en cada turno. */
+export interface AppointmentPet {
+  id: number
+  ownerId: number
+  name: string
+}
+
+export interface AppointmentVeterinarian {
+  id: number
+  fullName: string
+  specialty: string | null
+}
+
+export interface ApiAppointment {
+  id: number
+  petId: number
+  pet: AppointmentPet
+  veterinarianId: number
+  veterinarian: AppointmentVeterinarian
+  startAt: string
+  endAt: string
+  reason: AppointmentReason
+  status: AppointmentStatus
+  notes: string | null
+  creationDate: string
+  lastUpdateDate: string
+}
+
+export interface AppointmentInput {
+  petId: number
+  veterinarianId: number
+  startAt: string
+  durationMinutes?: number
+  endAt?: string
+  reason: AppointmentReason
+  notes?: string
+}
+
+export interface RescheduleAppointmentInput {
+  veterinarianId?: number
+  startAt: string
+  durationMinutes?: number
+  endAt?: string
+}
+
+export interface ListAppointmentsParams {
+  veterinarianId?: number
+  petId?: number
+  date?: string
+  from?: string
+  to?: string
+  status?: AppointmentStatus
+}

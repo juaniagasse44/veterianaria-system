@@ -4,7 +4,6 @@ import { AuthProvider, useAuth } from './auth/AuthContext'
 import { Sidebar } from './components/Sidebar'
 import { TopBar } from './components/TopBar'
 import { Ico } from './components/Ico'
-import { NuevoTurnoModal } from './components/modals/NuevoTurnoModal'
 import { LoginScreen } from './pages/LoginScreen'
 import { DashboardScreen } from './pages/DashboardScreen'
 import { MascotasScreen } from './pages/MascotasScreen'
@@ -32,13 +31,12 @@ function LoadingScreen() {
 function Dashboard() {
   const [screen, setScreen] = useState<Screen>('dashboard')
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [showNuevoTurno, setShowNuevoTurno] = useState(false)
 
   function renderScreen() {
     switch (screen) {
       case 'dashboard':   return <DashboardScreen onNavigate={setScreen} />
       case 'mascotas':    return <MascotasScreen />
-      case 'turnos':      return <TurnosScreen onNewAppt={() => setShowNuevoTurno(true)} />
+      case 'turnos':      return <TurnosScreen />
       case 'duenos':      return <DuenosScreen />
       case 'stock':       return <StockScreen />
       case 'historia':    return <HistoriaScreen />
@@ -61,8 +59,6 @@ function Dashboard() {
       <main className="lg:ml-60 pt-16 min-h-screen">
         <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-screen-xl mx-auto">{renderScreen()}</div>
       </main>
-
-      {showNuevoTurno && <NuevoTurnoModal onClose={() => setShowNuevoTurno(false)} />}
     </div>
   )
 }

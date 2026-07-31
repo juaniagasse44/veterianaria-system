@@ -84,3 +84,31 @@ export function vaccineStatus(nextDue: string): 'Vigente' | 'Por vencer' | 'Venc
   if (diff <= 30) return 'Por vencer'
   return 'Vigente'
 }
+
+/** 'YYYY-MM-DD' en horario local (a diferencia de `toISOString`, que trunca a UTC). */
+export function formatDateInput(d: Date): string {
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+export function todayApiDate(): string {
+  return formatDateInput(new Date())
+}
+
+/** Para el `startAt`/`endAt` ISO real de los turnos (a diferencia de `parseTime`,
+ * que espera el 'HH:MM' plano de los datos mock). */
+export function formatApiTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+}
+
+export function formatWeekdayDate(dateStr: string): string {
+  const label = new Date(`${dateStr}T00:00:00`).toLocaleDateString('es-AR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}

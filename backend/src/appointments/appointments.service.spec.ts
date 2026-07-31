@@ -40,11 +40,23 @@ function mockQueryBuilder(getCountResult: number): FakeQueryBuilder {
 }
 
 function mockManager(overlapCount: number): FakeManager {
+  return mockManagerWithOverlaps([overlapCount]);
+}
+
+/** Cada llamado a `createQueryBuilder` (chequeo de solapamiento por
+ * veterinario, luego por mascota) devuelve el siguiente `getCount` de la
+ * lista; el último valor se repite si hay más llamados que elementos. */
+function mockManagerWithOverlaps(overlapCounts: number[]): FakeManager {
+  let call = 0;
   return {
     query: jest.fn<Promise<unknown>, unknown[]>().mockResolvedValue(undefined),
     createQueryBuilder: jest
       .fn<FakeQueryBuilder, unknown[]>()
-      .mockReturnValue(mockQueryBuilder(overlapCount)),
+      .mockImplementation(() => {
+        const count = overlapCounts[Math.min(call, overlapCounts.length - 1)];
+        call += 1;
+        return mockQueryBuilder(count);
+      }),
     create: jest.fn<
       Record<string, unknown>,
       [unknown, Record<string, unknown>]
@@ -119,8 +131,12 @@ describe('AppointmentsService', () => {
 
       expect(result.status).toBe(AppointmentStatus.PENDIENTE);
       expect(manager.query).toHaveBeenCalledWith(
-        'SELECT pg_advisory_xact_lock($1)',
-        [1],
+        'SELECT pg_advisory_xact_lock($1, $2)',
+        [1, 1],
+      );
+      expect(manager.query).toHaveBeenCalledWith(
+        'SELECT pg_advisory_xact_lock($1, $2)',
+        [2, 1],
       );
     });
 
@@ -139,12 +155,28 @@ describe('AppointmentsService', () => {
       ).rejects.toThrow(ConflictException);
     });
 
-    it('permite el mismo horario con otro veterinario (no comparte lock/consulta)', async () => {
+    it('rechaza con 409 cuando la misma mascota ya tiene un turno solapado con otro veterinario', async () => {
+      // Chequeo de veterinario pasa (0), chequeo de mascota encuentra solapamiento (1).
+      const manager = mockManagerWithOverlaps([0, 1]);
+      dataSource.transaction.mockImplementation((cb) => cb(manager));
+
+      await expect(
+        service.create({
+          petId: 1,
+          veterinarianId: 2,
+          startAt: futureIso(24),
+          durationMinutes: 30,
+          reason: AppointmentReason.CONSULTA,
+        }),
+      ).rejects.toThrow('La mascota ya tiene un turno en ese horario');
+    });
+
+    it('permite el mismo horario con otro veterinario y otra mascota (no comparte lock/consulta)', async () => {
       const manager = mockManager(0);
       dataSource.transaction.mockImplementation((cb) => cb(manager));
 
       await service.create({
-        petId: 1,
+        petId: 3,
         veterinarianId: 2,
         startAt: futureIso(24),
         durationMinutes: 30,
@@ -152,8 +184,12 @@ describe('AppointmentsService', () => {
       });
 
       expect(manager.query).toHaveBeenCalledWith(
-        'SELECT pg_advisory_xact_lock($1)',
-        [2],
+        'SELECT pg_advisory_xact_lock($1, $2)',
+        [1, 2],
+      );
+      expect(manager.query).toHaveBeenCalledWith(
+        'SELECT pg_advisory_xact_lock($1, $2)',
+        [2, 3],
       );
     });
 

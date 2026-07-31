@@ -66,7 +66,9 @@ export class AppointmentsService {
 
     return this.dataSource.transaction(async (manager) => {
       await this.lockVeterinarian(manager, dto.veterinarianId);
+      await this.lockPet(manager, dto.petId);
       await this.assertNoOverlap(manager, dto.veterinarianId, startAt, endAt);
+      await this.assertNoPetOverlap(manager, dto.petId, startAt, endAt);
 
       const appointment = manager.create(Appointment, {
         petId: dto.petId,
@@ -102,7 +104,15 @@ export class AppointmentsService {
 
     return this.dataSource.transaction(async (manager) => {
       await this.lockVeterinarian(manager, veterinarianId);
+      await this.lockPet(manager, appointment.petId);
       await this.assertNoOverlap(manager, veterinarianId, startAt, endAt, id);
+      await this.assertNoPetOverlap(
+        manager,
+        appointment.petId,
+        startAt,
+        endAt,
+        id,
+      );
 
       appointment.veterinarianId = veterinarianId;
       appointment.startAt = startAt;
@@ -218,6 +228,14 @@ export class AppointmentsService {
   }
 
   /**
+   * Namespaces del advisory lock: `veterinarianId` y `petId` son secuencias
+   * de PK independientes (ambas empiezan en 1), así que sin un namespace un
+   * turno con id 1 de cada tabla compartiría la misma clave de lock.
+   */
+  private static readonly LOCK_NAMESPACE_VETERINARIAN = 1;
+  private static readonly LOCK_NAMESPACE_PET = 2;
+
+  /**
    * Advisory lock transaccional por veterinario (D2): serializa las
    * verificaciones de solapamiento del mismo profesional entre transacciones
    * concurrentes. Se libera solo al terminar la transacción (commit/rollback).
@@ -226,7 +244,23 @@ export class AppointmentsService {
     manager: EntityManager,
     veterinarianId: number,
   ): Promise<void> {
-    await manager.query('SELECT pg_advisory_xact_lock($1)', [veterinarianId]);
+    await manager.query('SELECT pg_advisory_xact_lock($1, $2)', [
+      AppointmentsService.LOCK_NAMESPACE_VETERINARIAN,
+      veterinarianId,
+    ]);
+  }
+
+  /** Mismo mecanismo que `lockVeterinarian`, pero por mascota: evita que una
+   * misma mascota quede agendada dos veces en el mismo horario con
+   * profesionales distintos. */
+  private async lockPet(
+    manager: EntityManager,
+    petId: number,
+  ): Promise<void> {
+    await manager.query('SELECT pg_advisory_xact_lock($1, $2)', [
+      AppointmentsService.LOCK_NAMESPACE_PET,
+      petId,
+    ]);
   }
 
   private async assertNoOverlap(
@@ -255,6 +289,34 @@ export class AppointmentsService {
     if (overlapping > 0) {
       throw new ConflictException(
         'El veterinario ya tiene un turno en ese horario',
+      );
+    }
+  }
+
+  private async assertNoPetOverlap(
+    manager: EntityManager,
+    petId: number,
+    startAt: Date,
+    endAt: Date,
+    excludeId?: number,
+  ): Promise<void> {
+    const qb = manager
+      .createQueryBuilder(Appointment, 'appointment')
+      .where('appointment.petId = :petId', { petId })
+      .andWhere('appointment.status != :cancelled', {
+        cancelled: AppointmentStatus.CANCELADO,
+      })
+      .andWhere('appointment.startAt < :endAt', { endAt })
+      .andWhere('appointment.endAt > :startAt', { startAt });
+
+    if (excludeId) {
+      qb.andWhere('appointment.id != :excludeId', { excludeId });
+    }
+
+    const overlapping = await qb.getCount();
+    if (overlapping > 0) {
+      throw new ConflictException(
+        'La mascota ya tiene un turno en ese horario',
       );
     }
   }
