@@ -469,3 +469,51 @@ export interface ListConsultationsParams {
   page?: number
   limit?: number
 }
+
+// ─── API — Vaccinations / carnet de vacunación (backend real) ─────────────────
+
+/** `GET /vaccinations` y `/vaccinations/upcoming` siempre embeben `pet`; a
+ * diferencia de las consultas, acá alcanza con eso (el nombre del producto y
+ * del veterinario se resuelven por id contra las listas ya cargadas, igual
+ * que en el resto de las pantallas). */
+export interface VaccinationPet {
+  id: number
+  ownerId: number
+  name: string
+  species: PetSpecies
+  breed: string | null
+}
+
+export interface ApiVaccination {
+  id: number
+  petId: number
+  pet: VaccinationPet
+  productId: number | null
+  vaccineName: string
+  appliedDate: string
+  nextDoseDate: string | null
+  veterinarianId: number | null
+  notes: string | null
+  creationDate: string
+}
+
+export interface VaccinationInput {
+  petId: number
+  vaccineName: string
+  productId?: number
+  appliedDate?: string
+  nextDoseDate?: string
+  validDays?: number
+  veterinarianId?: number
+  notes?: string
+}
+
+export interface ListVaccinationsParams {
+  petId?: number
+  page?: number
+  limit?: number
+}
+
+export interface UpcomingVaccinationsParams {
+  days?: number
+}

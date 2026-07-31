@@ -103,6 +103,20 @@ export function formatApiTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
 }
 
+/** Igual que `vaccDaysLeft`/`vaccineStatus`, pero contra la fecha real de hoy
+ * en vez del `TODAY_DATE` fijo de los datos mock. */
+export function vaccDaysLeftFrom(nextDue: string, from: Date = new Date()): number {
+  const base = new Date(from.getFullYear(), from.getMonth(), from.getDate())
+  return Math.round((new Date(nextDue + 'T00:00:00').getTime() - base.getTime()) / 86400000)
+}
+
+export function vaccineStatusFrom(nextDue: string, from?: Date): 'Vigente' | 'Por vencer' | 'Vencida' {
+  const diff = vaccDaysLeftFrom(nextDue, from)
+  if (diff < 0) return 'Vencida'
+  if (diff <= 30) return 'Por vencer'
+  return 'Vigente'
+}
+
 export function formatWeekdayDate(dateStr: string): string {
   const label = new Date(`${dateStr}T00:00:00`).toLocaleDateString('es-AR', {
     weekday: 'long',
