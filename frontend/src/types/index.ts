@@ -197,6 +197,62 @@ export interface ListVeterinariansParams {
   limit?: number
 }
 
+// ─── API — Pets (backend real, distinto del mock `Pet` de arriba) ─────────────
+
+export type PetSpecies = 'PERRO' | 'GATO' | 'AVE' | 'ROEDOR' | 'REPTIL' | 'OTRO'
+export type PetSex = 'MACHO' | 'HEMBRA' | 'DESCONOCIDO'
+
+export interface PetAge {
+  years: number
+  months: number
+}
+
+export interface ApiPet {
+  id: number
+  ownerId: number
+  name: string
+  species: PetSpecies
+  breed: string | null
+  sex: PetSex | null
+  birthDate: string | null
+  weight: number | null
+  color: string | null
+  notes: string | null
+  active: boolean
+  creationDate: string
+  lastUpdateDate: string
+  age: PetAge | null
+}
+
+/** Solo `GET /pets/:id` trae el dueño embebido (el listado no). */
+export interface ApiPetDetail extends ApiPet {
+  owner: ApiOwner
+}
+
+export interface PetInput {
+  ownerId: number
+  name: string
+  species: PetSpecies
+  breed?: string
+  sex?: PetSex
+  birthDate?: string
+  weight?: number
+  color?: string
+  notes?: string
+}
+
+/** El backend no permite cambiar el dueño en `PATCH /pets/:id`. */
+export type PetUpdateInput = Omit<PetInput, 'ownerId'>
+
+export interface ListPetsParams {
+  ownerId?: number
+  species?: PetSpecies
+  search?: string
+  active?: boolean
+  page?: number
+  limit?: number
+}
+
 // ─── API — Products & categories (backend real) ───────────────────────────────
 
 export type ProductUnit = 'UNIDAD' | 'KG' | 'LT'
