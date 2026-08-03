@@ -9,7 +9,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
-  app.enableCors();
+  // Sin FRONTEND_URL (dev local) se permite cualquier origen, igual que
+  // antes. En producción se restringe al/los origen(es) configurados
+  // (soporta una lista separada por comas para más de un frontend).
+  const frontendUrl = configService.get<string>('FRONTEND_URL');
+  app.enableCors({
+    origin: frontendUrl ? frontendUrl.split(',').map((origin) => origin.trim()) : true,
+  });
 
   app.setGlobalPrefix('api');
 

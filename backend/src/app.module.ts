@@ -22,18 +22,30 @@ import { VaccinationsModule } from './vaccinations/vaccinations.module';
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get<string>('DATABASE_HOST'),
-        port: config.get<number>('DATABASE_PORT'),
-        username: config.get<string>('DATABASE_USER'),
-        password: config.get<string>('DATABASE_PASSWORD'),
-        database: config.get<string>('DATABASE_NAME'),
-        synchronize: false,
-        migrationsRun: true,
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        migrations: [__dirname + '/../migrations/*{.ts,.js}'],
-      }),
+      useFactory: (config: ConfigService) => {
+        const databaseUrl = config.get<string>('DATABASE_URL');
+        const isProduction = config.get<string>('NODE_ENV') === 'production';
+
+        return {
+          type: 'postgres',
+          ...(databaseUrl
+            ? { url: databaseUrl }
+            : {
+                host: config.get<string>('DATABASE_HOST'),
+                port: config.get<number>('DATABASE_PORT'),
+                username: config.get<string>('DATABASE_USER'),
+                password: config.get<string>('DATABASE_PASSWORD'),
+                database: config.get<string>('DATABASE_NAME'),
+              }),
+          // Render (y la mayoría de los Postgres gestionados) exigen SSL; en
+          // local docker-compose no lo expone, así que solo se activa en prod.
+          ssl: isProduction ? { rejectUnauthorized: false } : false,
+          synchronize: false,
+          migrationsRun: true,
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+        };
+      },
     }),
     HealthModule,
     UsersModule,
