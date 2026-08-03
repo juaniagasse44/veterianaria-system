@@ -55,7 +55,7 @@ function Dashboard() {
         mobileOpen={mobileOpen}
         onClose={() => setMobileOpen(false)}
       />
-      <TopBar screen={screen} onMenuToggle={() => setMobileOpen(o => !o)} />
+      <TopBar screen={screen} onMenuToggle={() => setMobileOpen(o => !o)} onNavigate={setScreen} />
       <main className="lg:ml-60 pt-16 min-h-screen">
         <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-screen-xl mx-auto">{renderScreen()}</div>
       </main>
