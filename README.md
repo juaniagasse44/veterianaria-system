@@ -1,17 +1,20 @@
-# VetSystem — API
+# VetSystem
 
-> Monorepo: el código del backend vive en [`backend/`](backend/). Los comandos
-> `npm` de este documento se corren desde esa carpeta salvo que se indique lo
-> contrario; `docker-compose.yml` orquesta todo desde la raíz.
+> Monorepo: el backend vive en [`backend/`](backend/) y el frontend en
+> [`frontend/`](frontend/). Los comandos `npm` de este documento se corren
+> desde esa carpeta correspondiente salvo que se indique lo contrario;
+> `docker-compose.yml` orquesta la API y la base de datos desde la raíz.
 
-Backend de gestión para una veterinaria: dueños y mascotas, veterinarios,
+Sistema de gestión para una veterinaria: dueños y mascotas, veterinarios,
 catálogo de productos con control de inventario, turnos con reglas reales de
 solapamiento, historia clínica y vacunas que descuentan stock automáticamente.
+Incluye una API REST y un panel de administración (SPA) que la consume.
 
-Construido como proyecto de portfolio con **NestJS + TypeScript + PostgreSQL**,
-siguiendo un enfoque de **Spec-Driven Development** (ver [método SDD](#método-sdd-spec-driven-development)
-más abajo) — cada módulo se diseñó primero como spec (objetivo, decisiones,
-modelo de datos, criterios de aceptación) antes de programarse.
+Construido como proyecto de portfolio con **NestJS + TypeScript + PostgreSQL**
+en el backend y **React + TypeScript + Vite** en el frontend, siguiendo un
+enfoque de **Spec-Driven Development** para la API (ver [método SDD](#método-sdd-spec-driven-development)
+más abajo) — cada módulo del backend se diseñó primero como spec (objetivo,
+decisiones, modelo de datos, criterios de aceptación) antes de programarse.
 
 ---
 
@@ -28,6 +31,7 @@ modelo de datos, criterios de aceptación) antes de programarse.
 - [Tests](#tests)
 - [Formato de error](#formato-de-error)
 - [Scripts](#scripts)
+- [Frontend](#frontend)
 - [Método SDD (Spec-Driven Development)](#método-sdd-spec-driven-development)
 - [Decisiones de diseño destacadas](#decisiones-de-diseño-destacadas)
 - [Capturas](#capturas)
@@ -62,6 +66,7 @@ modelo de datos, criterios de aceptación) antes de programarse.
 ## Stack
 
 - **Backend**: NestJS + TypeScript
+- **Frontend**: React + TypeScript + Vite + Tailwind CSS
 - **Base de datos**: PostgreSQL + TypeORM (migraciones versionadas, sin `synchronize`)
 - **Auth**: JWT (`@nestjs/jwt` + `passport-jwt`) con roles
 - **Documentación**: `@nestjs/swagger` (OpenAPI 3)
@@ -221,6 +226,61 @@ npm run test              # tests unitarios
 npm run test:e2e          # tests e2e + concurrencia
 npm run lint               # eslint --fix
 npm run seed:admin        # crea el usuario ADMIN inicial
+```
+
+## Frontend
+
+Panel de administración (SPA) que consume la API de arriba: login, dashboard
+con KPIs del día, ABM de dueños/mascotas/veterinarios, agenda de turnos,
+historia clínica, carnet de vacunas, y stock/inventario con alertas de
+producto bajo mínimo. Vive en [`frontend/`](frontend/), es un proyecto
+independiente del backend (su propio `package.json`) que solo depende de él
+por HTTP.
+
+**Stack**: React 19 + TypeScript + Vite + Tailwind CSS 4, sin librerías de
+routing/estado externas — la navegación entre pantallas y el fetching de
+datos se resuelven con `useState`/`useEffect` simples por pantalla (ver
+`frontend/src/pages/`).
+
+**Cómo levantar** (con la API ya corriendo, ver secciones anteriores):
+
+```bash
+cd frontend
+cp .env.example .env   # VITE_API_URL apunta a http://localhost:3001/api
+npm install
+npm run dev
+```
+
+La app queda en `http://localhost:5173`. Para entrar, usar el usuario ADMIN
+sembrado con `npm run seed:admin` en el backend (`ADMIN_EMAIL` /
+`ADMIN_PASSWORD` del `.env` del backend).
+
+**Variables de entorno**: ver [frontend/.env.example](frontend/.env.example)
+— una sola, `VITE_API_URL`, la URL base de la API (con `/api` incluido).
+
+**Estructura**:
+
+- `src/api/` — un archivo por recurso (`appointments.ts`, `vaccinations.ts`,
+  `stock.ts`, …) con las funciones que llaman a la API vía el cliente
+  centralizado en `src/lib/api.ts` (maneja el token JWT y el formato de error
+  del backend).
+- `src/pages/` — una pantalla por sección del menú (Dashboard, Turnos,
+  Historia Clínica, Vacunas, Stock, etc.), cada una con su propio
+  fetch-on-mount.
+- `src/auth/AuthContext.tsx` — sesión y token (`localStorage`), expone
+  `useAuth()`.
+- `src/hooks/` — hooks compartidos entre pantallas, p. ej. `useNotifications`
+  (combina turnos de hoy, vacunas por vencer y stock bajo para el dropdown de
+  notificaciones del topbar).
+- `src/types/index.ts` — tipos TypeScript espejo de los DTOs/entidades del
+  backend.
+
+**Scripts** (desde `frontend/`):
+
+```bash
+npm run dev        # servidor de desarrollo (Vite, puerto 5173)
+npm run build       # build de producción a dist/
+npm run preview     # sirve el build de producción localmente
 ```
 
 ## Método SDD (Spec-Driven Development)
