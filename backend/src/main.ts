@@ -22,9 +22,36 @@ async function bootstrap() {
   // Sin FRONTEND_URL (dev local) se permite cualquier origen, igual que
   // antes. En producción se restringe al/los origen(es) configurados
   // (soporta una lista separada por comas para más de un frontend).
+  // Se normalizan espacios y barras finales porque el Origin que manda el
+  // browser nunca trae trailing slash, y es un error común al pegar la
+  // URL en las env vars de Render/Vercel.
+  const corsLogger = new Logger('CORS');
   const frontendUrl = configService.get<string>('FRONTEND_URL');
+  const allowedOrigins = frontendUrl
+    ? frontendUrl
+        .split(',')
+        .map((origin) => origin.trim().replace(/\/+$/, ''))
+        .filter(Boolean)
+    : null;
+
   app.enableCors({
-    origin: frontendUrl ? frontendUrl.split(',').map((origin) => origin.trim()) : true,
+    origin: (origin, callback) => {
+      // Sin header Origin (curl, health checks, server-to-server) o sin
+      // restricción configurada: se permite.
+      if (!allowedOrigins || !origin) {
+        callback(null, true);
+        return;
+      }
+      const normalizedOrigin = origin.replace(/\/+$/, '');
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        callback(null, true);
+        return;
+      }
+      corsLogger.warn(
+        `Origin rechazado: "${origin}". Permitidos: ${allowedOrigins.join(', ')}`,
+      );
+      callback(null, false);
+    },
   });
 
   app.setGlobalPrefix('api');
