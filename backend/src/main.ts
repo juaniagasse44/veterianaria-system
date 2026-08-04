@@ -1,13 +1,23 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { seedAdmin } from './database/seeds/admin.seed';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+
+  if (configService.get<string>('NODE_ENV') === 'production') {
+    await seedAdmin(app).catch((error) => {
+      new Logger('Bootstrap').error(
+        'Error al ejecutar el seed de admin, la app continúa iniciando igual',
+        error,
+      );
+    });
+  }
 
   // Sin FRONTEND_URL (dev local) se permite cualquier origen, igual que
   // antes. En producción se restringe al/los origen(es) configurados
