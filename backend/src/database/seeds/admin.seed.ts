@@ -6,6 +6,34 @@ import { UserRole } from '../../users/entities/user.entity';
 const SALT_ROUNDS = 10;
 const logger = new Logger('AdminSeed');
 
+const DEMO_EMAIL_DEFAULT = 'demo@vetsystem.com';
+const DEMO_PASSWORD_DEFAULT = 'demo1234';
+
+async function createUserIfNotExists(
+  usersService: UsersService,
+  params: {
+    email: string;
+    password: string;
+    fullName: string;
+    role: UserRole;
+  },
+): Promise<void> {
+  const existing = await usersService.findByEmail(params.email);
+  if (existing) {
+    logger.log(`El usuario ${params.email} ya existe, no se crea de nuevo.`);
+    return;
+  }
+
+  const hashedPassword = await bcrypt.hash(params.password, SALT_ROUNDS);
+  await usersService.create({
+    email: params.email,
+    password: hashedPassword,
+    fullName: params.fullName,
+    role: params.role,
+  });
+  logger.log(`Usuario ${params.email} (${params.role}) creado correctamente.`);
+}
+
 export async function seedAdmin(
   app: INestApplicationContext,
 ): Promise<void> {
@@ -21,18 +49,26 @@ export async function seedAdmin(
 
   const usersService = app.get(UsersService);
 
-  const existing = await usersService.findByEmail(adminEmail);
-  if (existing) {
-    logger.log(`El admin ${adminEmail} ya existe, no se crea de nuevo.`);
-    return;
-  }
-
-  const hashedPassword = await bcrypt.hash(adminPassword, SALT_ROUNDS);
-  await usersService.create({
+  await createUserIfNotExists(usersService, {
     email: adminEmail,
-    password: hashedPassword,
+    password: adminPassword,
     fullName: 'Administrador',
     role: UserRole.ADMIN,
   });
-  logger.log(`Admin ${adminEmail} creado correctamente.`);
+}
+
+export async function seedDemoUser(
+  app: INestApplicationContext,
+): Promise<void> {
+  const demoEmail = process.env.DEMO_EMAIL || DEMO_EMAIL_DEFAULT;
+  const demoPassword = process.env.DEMO_PASSWORD || DEMO_PASSWORD_DEFAULT;
+
+  const usersService = app.get(UsersService);
+
+  await createUserIfNotExists(usersService, {
+    email: demoEmail,
+    password: demoPassword,
+    fullName: 'Usuario Demo',
+    role: UserRole.EMPLOYEE,
+  });
 }

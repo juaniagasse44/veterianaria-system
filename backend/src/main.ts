@@ -4,16 +4,23 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import { seedAdmin } from './database/seeds/admin.seed';
+import { seedAdmin, seedDemoUser } from './database/seeds/admin.seed';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
   if (configService.get<string>('NODE_ENV') === 'production') {
+    const bootstrapLogger = new Logger('Bootstrap');
     await seedAdmin(app).catch((error) => {
-      new Logger('Bootstrap').error(
+      bootstrapLogger.error(
         'Error al ejecutar el seed de admin, la app continúa iniciando igual',
+        error,
+      );
+    });
+    await seedDemoUser(app).catch((error) => {
+      bootstrapLogger.error(
+        'Error al ejecutar el seed de usuario demo, la app continúa iniciando igual',
         error,
       );
     });
